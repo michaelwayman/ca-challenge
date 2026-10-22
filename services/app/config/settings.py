@@ -10,35 +10,19 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
+    "django.contrib.auth",  # DRF's AnonymousUser for unauthenticated requests
     "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
     "catalog",
 ]
 
+# No sessions, cookies or CSRF: nothing signs in to this service. The API uses bearer tokens.
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-# Sessions and CSRF exist only for the admin site; the API uses bearer tokens (DRF views are
-# CSRF-exempt). Cookies are shared across ports on one host, and the auth service's admin runs
-# on localhost too, so each service names its own cookies or they would sign each other out.
-# Staff signed in through the auth service (catalog/admin_auth.py), so there is no local
-# password; the session is short because a role change only shows at the next sign-in.
-AUTHENTICATION_BACKENDS = ["catalog.admin_auth.AuthServiceBackend"]
-SESSION_COOKIE_NAME = "app_sessionid"
-CSRF_COOKIE_NAME = "app_csrftoken"
-SESSION_COOKIE_AGE = 3600  # one hour
 
 TEMPLATES = [
     {
@@ -48,8 +32,6 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
             ]
         },
     }
@@ -101,7 +83,6 @@ CA_AUTH = {
     "ACCEPTED_TOKEN_VERSIONS": [1],
     "INTROSPECTOR": "catalog.auth.introspect",
 }
-AUTH_TOKEN_URL = os.environ.get("AUTH_TOKEN_URL", "http://localhost:8001/api/auth/v1/token/")
 AUTH_INTROSPECT_URL = os.environ.get(
     "AUTH_INTROSPECT_URL", "http://localhost:8001/api/auth/v1/introspect/"
 )

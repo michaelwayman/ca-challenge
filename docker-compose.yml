@@ -59,7 +59,6 @@ services:
       WP_TABLE_PREFIX: ${WP_TABLE_PREFIX:-wp_}
       # Token handling: keys are fetched from auth; introspection is used by writes only.
       AUTH_JWKS_URL: http://auth:8001/.well-known/jwks.json
-      AUTH_TOKEN_URL: http://auth:8001/api/auth/v1/token/
       AUTH_INTROSPECT_URL: http://auth:8001/api/auth/v1/introspect/
       AUTH_SERVICE_SECRET: ${AUTH_SERVICE_SECRET:-dev-service-secret}
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"

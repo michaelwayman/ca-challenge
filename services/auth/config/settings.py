@@ -31,8 +31,8 @@ MIDDLEWARE = [
 ]
 
 # Sessions and CSRF exist only for the admin site; the JSON API uses bearer tokens (DRF views
-# are CSRF-exempt). Cookies are shared across ports on one host, and the main app's admin runs
-# on localhost too, so each service names its own cookies or they would sign each other out.
+# are CSRF-exempt). Cookies are shared across ports on one host, so the cookies get names of
+# their own rather than Django's generic ones.
 SESSION_COOKIE_NAME = "auth_sessionid"
 CSRF_COOKIE_NAME = "auth_csrftoken"
 SESSION_COOKIE_AGE = 3600  # one hour

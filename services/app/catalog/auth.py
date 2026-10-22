@@ -1,4 +1,4 @@
-"""Client for the auth service: introspection (writes) and sign-in (the admin site).
+"""Client for the auth service's introspection endpoint, used by the write endpoint.
 
 Lives here, not in the shared library: only this service calls it, and it changes with
 the auth service's API. The library's `require_role(..., fresh=True)` reaches it through
@@ -10,14 +10,8 @@ import logging
 import httpx
 from django.conf import settings
 
-from ca_authlib.claims import Claims, Introspection
-from ca_authlib.drf import get_verifier
-from ca_authlib.errors import (
-    IntrospectionUnavailable,
-    InvalidIntrospection,
-    KeysUnavailable,
-    TokenError,
-)
+from ca_authlib.claims import Introspection
+from ca_authlib.errors import IntrospectionUnavailable, InvalidIntrospection
 
 logger = logging.getLogger(__name__)
 
@@ -49,28 +43,3 @@ def introspect(token: str) -> Introspection:
         return Introspection.from_payload(response.json())
     except (ValueError, InvalidIntrospection) as exc:
         raise IntrospectionUnavailable("unreadable introspection response") from exc
-
-
-def login(username: str, password: str) -> Claims | None:
-    """Sign a person in through the auth service and return their verified token claims.
-
-    None for any failure: wrong credentials, the auth service down or answering oddly, or a
-    token that does not verify. The admin login treats every one of them as "not signed in".
-    """
-    try:
-        with httpx.Client(timeout=settings.AUTH_TIMEOUT_SECONDS, transport=_transport) as client:
-            response = client.post(
-                settings.AUTH_TOKEN_URL, json={"username": username, "password": password}
-            )
-    except httpx.HTTPError as exc:
-        logger.warning("admin sign-in: the auth service is unreachable: %s", exc)
-        return None
-    if response.status_code != 200:
-        if response.status_code >= 500:
-            logger.warning("admin sign-in: the auth service answered HTTP %s", response.status_code)
-        return None
-    try:
-        return get_verifier().verify(response.json()["access_token"])
-    except (ValueError, KeyError, TypeError, TokenError, KeysUnavailable) as exc:
-        logger.warning("admin sign-in: unusable token response: %s", exc)
-        return None

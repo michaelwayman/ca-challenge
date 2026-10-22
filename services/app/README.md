@@ -1,17 +1,16 @@
 # app: the main site
 
 The Django app that replaces the WordPress site. It serves the brand, review and static pages at the same
-URLs as WordPress, the brand-listing API, a React `<BrandList />` on `/brand/`, and a Django admin. It owns the
-domain data (brands, industries, reviewers, reviews, pages). It stores no passwords: tokens are verified locally
-against the [auth service](../auth/README.md)'s public keys, and editors sign in to the admin with their
-auth-service login.
+URLs as WordPress, the brand-listing API, and a React `<BrandList />` on `/brand/`. It owns the domain data
+(brands, industries, reviewers, reviews, pages). It stores no passwords and no roles: tokens are verified locally
+against the [auth service](../auth/README.md)'s public keys, and the one write endpoint asks the auth service for
+the caller's current roles.
 
 | | |
 |---|---|
 | Pages | `/`, `/brand/`, `/brand/<slug>/`, `/review/`, `/review/<slug>/`, `/about/`, `/contact/` |
 | API | `GET /api/brands/` (`industry`, `ordering`, `page`, `page_size`), `GET` and `PATCH /api/brands/<slug>/` (editor only) |
-| Admin | `/admin/` |
-| Code | `catalog/` (models, views, API, admin), `frontend/` (React and SCSS), `templates/` |
+| Code | `catalog/` (models, views, API, importer), `frontend/` (React and SCSS), `templates/` |
 
 ## Quickstart
 
@@ -44,5 +43,5 @@ cd frontend && pnpm dev    # the component on :5173 with hot reload
 ## Configuration
 
 Environment variables, all with development defaults: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`,
-`DB_PASSWORD`, `AUTH_JWKS_URL`, `AUTH_TOKEN_URL`, `AUTH_INTROSPECT_URL`, `AUTH_SERVICE_SECRET`,
+`DB_PASSWORD`, `AUTH_JWKS_URL`, `AUTH_INTROSPECT_URL`, `AUTH_SERVICE_SECRET`,
 `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`. The migration also reads `WP_DB_*`.
