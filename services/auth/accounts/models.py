@@ -71,6 +71,9 @@ class RefreshToken(models.Model):
     expires_at = models.DateTimeField()
     revoked_at = models.DateTimeField(null=True, blank=True)
 
+    class Meta:
+        indexes = [models.Index(fields=["expires_at"], name="refresh_token_expires_idx")]
+
     def __str__(self):
         return f"refresh token for {self.user_id}"
 

@@ -99,6 +99,10 @@ All eight are decided below. Observations from the seed data are recorded with t
 - **Compose:** `app` and `auth` run `migrate` on start. The service secret has a dev default (`dev-service-secret`) in compose and in settings; any real deployment must set `AUTH_SERVICE_SECRET` on both.
 - **Verified:** library 89 tests (forged, expired, wrong-audience and wrong-issuer tokens, algorithm confusion, rotation, outage, rate-limited refetch); auth 53 (login, refresh rotation, introspection, key rotation and retirement, the importer including the real WordPress users); app 133 (the PATCH matrix, demotion, outage). `scripts/demo-auth.sh` was run against the live containers: reader 403, editor 200, a demotion refused on the same token, auth stopped gives reads 200 and writes 503.
 
+## Implementation notes: purging tokens and retired keys
+
+Decided after a practice panel review, as proposed: nothing ever deleted refresh tokens (each login and each refresh adds a row; redeeming one only sets `revoked_at`) or retired signing keys (each keeps its unencrypted private key). `manage.py purge_tokens [--dry-run]` deletes refresh tokens whose `expires_at` has passed, revoked or not, and keeps revoked-but-unexpired ones so reuse detection stays possible if it is added. It deletes signing keys retired longer ago than one access-token lifetime plus the 5-minute JWKS cache (`keys.JWKS_CACHE_SECONDS`). Migration `0005` adds an index on `RefreshToken.expires_at` for the purge query. Scheduling it (cron or a CronJob) is a deployment concern; nothing runs it automatically here.
+
 ## Review pass against CHALLENGE.md
 
 Each requirement was checked against the running system rather than the tests alone. Findings and what was done:

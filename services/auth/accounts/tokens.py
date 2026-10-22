@@ -66,3 +66,17 @@ def redeem_refresh_token(raw: str) -> dict | None:
         token.revoked_at = now
         token.save(update_fields=["revoked_at"])
         return token_pair(token.user, token.audience)
+
+
+def purge_refresh_tokens(now=None, *, dry_run: bool = False) -> int:
+    """Delete refresh tokens past their expiry, used or not, and return how many.
+
+    Each login and each refresh adds a row, and redeeming one only marks it revoked, so
+    without this the table grows for ever. A revoked token is kept until it expires, so
+    reuse detection can still recognise it if that is added.
+    """
+    expired = RefreshToken.objects.filter(expires_at__lte=now or timezone.now())
+    count = expired.count()
+    if not dry_run:
+        expired.delete()
+    return count

@@ -62,6 +62,19 @@ To release: bump `version` in `libs/ca_authlib/pyproject.toml`, tag `ca-authlib/
 version by widening that range and running `uv lock`, and can lag the other. Only the workspace install is wired
 here (there is no publishing pipeline), so in practice both services run the library's current source.
 
+## Housekeeping
+
+Every login and every refresh adds a refresh-token row, and redeeming one only marks it revoked, so the auth
+database grows until it is purged. `purge_tokens` deletes refresh tokens past their expiry and signing keys
+retired longer ago than one access-token lifetime plus the JWKS cache time:
+
+```bash
+docker compose exec auth python manage.py purge_tokens --dry-run   # counts only
+docker compose exec auth python manage.py purge_tokens
+```
+
+In production it would run on a schedule (cron or a Kubernetes CronJob); it is safe to run at any time.
+
 ## The migration
 
 `make up` already runs it. By hand (the WordPress source is a throwaway MariaDB loaded from

@@ -11,6 +11,9 @@ from django.utils import timezone
 
 from .models import SigningKey
 
+# How long the main app may keep using a JWKS document it fetched (ca_authlib's JWKSClient).
+JWKS_CACHE_SECONDS = 300
+
 
 def create_key() -> SigningKey:
     private = ed25519.Ed25519PrivateKey.generate()
@@ -61,3 +64,17 @@ def retire_old_keys(now=None) -> int:
             key.save(update_fields=["retired_at"])
             retired += 1
     return retired
+
+
+def purge_retired_keys(now=None, *, dry_run: bool = False) -> int:
+    """Delete keys retired longer ago than one access-token lifetime plus the JWKS cache,
+    and return how many. A retired key is no longer published, and every token it signed
+    had expired before it was retired; the margin only covers a cached JWKS copy. Deleting
+    the row also removes its private key from the database."""
+    now = now or timezone.now()
+    cutoff = now - timedelta(seconds=settings.ACCESS_TOKEN_TTL + JWKS_CACHE_SECONDS)
+    stale = SigningKey.objects.filter(retired_at__lte=cutoff)
+    count = stale.count()
+    if not dry_run:
+        stale.delete()
+    return count

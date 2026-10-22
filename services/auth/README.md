@@ -42,6 +42,7 @@ uv run pytest              # tests
 python manage.py import_wordpress_users                  # WordPress users, with unusable passwords; safe to re-run
 python manage.py set_dev_password <username> <password>  # development only (refuses unless DEBUG is on)
 python manage.py rotate_signing_key [--retire-old]       # add a key; --retire-old retires stale ones later
+python manage.py purge_tokens [--dry-run]                # delete expired refresh tokens and long-retired keys
 python manage.py createsuperuser                         # a staff user for /admin/
 ```
 
