@@ -1,0 +1,119 @@
+services:
+  db-app:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${APP_DB_NAME:-app}
+      POSTGRES_USER: ${APP_DB_USER:-app}
+      POSTGRES_PASSWORD: ${APP_DB_PASSWORD:-app}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - app_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${APP_DB_USER:-app} -d ${APP_DB_NAME:-app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # The auth service owns its own database; the main app never connects to it.
+  db-auth:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME:-auth}
+      POSTGRES_USER: ${AUTH_DB_USER:-auth}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-auth}
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - auth_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER:-auth} -d ${AUTH_DB_NAME:-auth}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: services/app/Dockerfile
+    depends_on:
+      db-app:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: db-app
+      DB_PORT: "5432"
+      DB_NAME: ${APP_DB_NAME:-app}
+      DB_USER: ${APP_DB_USER:-app}
+      DB_PASSWORD: ${APP_DB_PASSWORD:-app}
+      # Read by the migration command; start the source with
+      # `docker compose --profile migration-source up -d wp-db`.
+      WP_DB_HOST: wp-db
+      WP_DB_PORT: "3306"
+      WP_DB_NAME: ${WP_DB_NAME:-wp}
+      WP_DB_USER: ${WP_DB_USER:-wp}
+      WP_DB_PASSWORD: ${WP_DB_PASSWORD:-wp}
+      WP_TABLE_PREFIX: ${WP_TABLE_PREFIX:-wp_}
+      # Token handling: keys are fetched from auth; introspection is used by writes only.
+      AUTH_JWKS_URL: http://auth:8001/.well-known/jwks.json
+      AUTH_TOKEN_URL: http://auth:8001/api/auth/v1/token/
+      AUTH_INTROSPECT_URL: http://auth:8001/api/auth/v1/introspect/
+      AUTH_SERVICE_SECRET: ${AUTH_SERVICE_SECRET:-dev-service-secret}
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./services/app:/workspace/services/app
+      - ./libs:/workspace/libs
+
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    depends_on:
+      db-auth:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    environment:
+      DB_HOST: db-auth
+      DB_PORT: "5432"
+      DB_NAME: ${AUTH_DB_NAME:-auth}
+      DB_USER: ${AUTH_DB_USER:-auth}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD:-auth}
+      AUTH_SERVICE_SECRET: ${AUTH_SERVICE_SECRET:-dev-service-secret}
+      # Source for `import_wordpress_users` (compose profile `migration-source`).
+      WP_DB_HOST: wp-db
+      WP_DB_PORT: "3306"
+      WP_DB_NAME: ${WP_DB_NAME:-wp}
+      WP_DB_USER: ${WP_DB_USER:-wp}
+      WP_DB_PASSWORD: ${WP_DB_PASSWORD:-wp}
+      WP_TABLE_PREFIX: ${WP_TABLE_PREFIX:-wp_}
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8001"
+    volumes:
+      - ./services/auth:/workspace/services/auth
+      - ./libs:/workspace/libs
+
+  # Throwaway copy of the WordPress database, the migration's read-only source.
+  wp-db:
+    profiles: ["migration-source"]
+    image: mariadb:11
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+      MARIADB_DATABASE: ${WP_DB_NAME:-wp}
+      MARIADB_USER: ${WP_DB_USER:-wp}
+      MARIADB_PASSWORD: ${WP_DB_PASSWORD:-wp}
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - ./data/wordpress-dump.sql:/docker-entrypoint-initdb.d/01-dump.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  app_pg:
+  auth_pg:

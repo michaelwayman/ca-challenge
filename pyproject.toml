@@ -1,0 +1,54 @@
+# Workspace root: shared tooling config (ruff, dev tools) and the uv workspace
+# definition. Deployable code lives in services/ and libs/.
+[project]
+name = "brand-reviews"
+version = "0.0.0"
+description = "Django replacement for the WordPress brand-reviews site."
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "djlint>=1.46.6",
+    "pre-commit>=4",
+    "pytest>=8",
+    "pytest-django>=4.9",
+    "ruff>=0.9",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["services/*", "libs/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["services/app", "services/auth", "libs/ca_authlib/src"]
+extend-exclude = ["**/migrations/*.py"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # pycodestyle
+    "F",       # pyflakes
+    "I",       # isort
+    "UP",      # pyupgrade
+    "B",       # bugbear
+    "C4",      # comprehensions
+    "SIM",     # simplify
+    "DJ",      # django
+    "S",       # bandit
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106"]  # asserts and throwaway test credentials
+"**/config/settings.py" = ["S105"]  # dev-only default SECRET_KEY
+
+[tool.djlint]
+profile = "django"
+extension = "html"
+indent = 2
+max_line_length = 200
+max_attribute_length = 200
+preserve_blank_lines = true

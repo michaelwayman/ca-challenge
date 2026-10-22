@@ -1,0 +1,12 @@
+.git
+.venv
+.env
+data
+# At any depth: services/app/frontend/node_modules would otherwise be copied into the image.
+**/node_modules
+services/app/frontend/dist
+# Host-built assets: the image compiles its own.
+services/app/static
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
