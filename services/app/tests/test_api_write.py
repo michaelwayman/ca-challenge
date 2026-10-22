@@ -50,10 +50,20 @@ class TestPublicRead:
 
         assert auth_service.introspection_calls == []
 
-    def test_a_bad_token_on_a_public_read_is_still_a_401(self, client, brand, auth_service):
-        response = client.get("/api/brands/acme/", HTTP_AUTHORIZATION="Bearer garbage")
+    @pytest.mark.parametrize("bearer", ["garbage", "expired"])
+    def test_a_bad_token_on_a_public_read_is_ignored(self, client, brand, auth_service, bearer):
+        raw = token(ttl=-60) if bearer == "expired" else bearer
 
-        assert response.status_code == 401
+        response = client.get("/api/brands/acme/", HTTP_AUTHORIZATION=f"Bearer {raw}")
+
+        assert response.status_code == 200
+
+    def test_a_public_read_with_a_token_works_while_auth_is_down(self, client, brand, auth_service):
+        auth_service.jwks_down = True  # and no keys cached: verifying would be a 503
+
+        response = client.get("/api/brands/acme/", HTTP_AUTHORIZATION=f"Bearer {token()}")
+
+        assert response.status_code == 200
 
     def test_unknown_brand_is_a_404(self, client, db):
         assert client.get("/api/brands/nope/").status_code == 404

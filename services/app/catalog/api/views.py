@@ -60,7 +60,11 @@ EditorWithFreshRoles = require_role(Role.EDITOR, fresh=True)
 class BrandDetailView(APIView):
     """GET is public. PATCH edits a brand's description and needs the editor role."""
 
-    authentication_classes = [JWTAuthentication]
+    def get_authenticators(self):
+        # Only the write looks at the Authorization header. DRF authenticates eagerly, so a
+        # stale token on a public read would otherwise be a 401, or a 503 while auth is down.
+        # Django's View.setup() has set self.request (the plain HttpRequest) by now.
+        return [JWTAuthentication()] if self.request.method == "PATCH" else []
 
     def get_permissions(self):
         return [EditorWithFreshRoles()] if self.request.method == "PATCH" else []
