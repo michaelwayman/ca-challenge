@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BrandList (dev harness)</title>
+    <link rel="stylesheet" href="/static/css/site.css" />
+  </head>
+  <body>
+    <main class="container">
+      <div id="brand-list" data-api-url="/api/brands/" data-industries-id="industries"></div>
+      <script type="application/json" id="industries">
+        [
+          { "name": "Finance", "slug": "finance", "brand_count": 1 },
+          { "name": "Home Services", "slug": "home-services", "brand_count": 1 },
+          { "name": "Insurance", "slug": "insurance", "brand_count": 1 },
+          { "name": "Retail", "slug": "retail", "brand_count": 1 },
+          { "name": "Telecom", "slug": "telecom", "brand_count": 1 }
+        ]
+      </script>
+    </main>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
