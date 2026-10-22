@@ -1,0 +1,8 @@
+{% load catalog_extras %}
+<article class="card">
+  <p class="card__meta"><a href="{{ review.brand.get_absolute_url }}">{{ review.brand.name }}</a></p>
+  <h3 class="card__title"><a class="card__link" href="{{ review.get_absolute_url }}">{{ review.title }}</a></h3>
+  <p class="card__rating">{% stars review.rating %}</p>
+  <p class="card__excerpt">{{ review.body|excerpt:24 }}</p>
+  <p class="card__meta">— {% if review.reviewer %}{{ review.reviewer.display_name }}{% endif %}{% if review.reviewer_location %}, {{ review.reviewer_location }}{% endif %}</p>
+</article>

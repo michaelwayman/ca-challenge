@@ -1,0 +1,34 @@
+{% extends "catalog/base.html" %}
+{% block title %}Brand Reviews{% endblock %}
+{% block content %}
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero__title">Honest reviews of consumer brands</h1>
+      <p class="hero__lede">Independent customer feedback on insurance, telecom, finance, home services, and retail companies.</p>
+    </div>
+  </section>
+  <section class="section" aria-labelledby="featured-heading">
+    <div class="container">
+      <div class="section__header">
+        <h2 class="section__title" id="featured-heading">Featured Brands</h2>
+        <a class="section__link" href="{% url 'brand-list' %}">All brands →</a>
+      </div>
+      <div class="grid">
+        {% for brand in featured_brands %}
+          {% include "catalog/_brand_card.html" %}
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <section class="section section--alt" aria-labelledby="recent-heading">
+    <div class="container">
+      <div class="section__header">
+        <h2 class="section__title" id="recent-heading">Recent Reviews</h2>
+        <a class="section__link" href="{% url 'review-list' %}">All reviews →</a>
+      </div>
+      <div class="grid">
+        {% for review in recent_reviews %}{% include "catalog/_review_card.html" %}{% empty %}<p>No reviews yet.</p>{% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

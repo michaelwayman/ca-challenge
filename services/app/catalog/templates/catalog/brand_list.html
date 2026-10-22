@@ -1,0 +1,27 @@
+{% extends "catalog/base.html" %}
+{% load static %}
+{% block title %}Brands | Brand Reviews{% endblock %}
+{% block content %}
+  <section class="hero hero--compact">
+    <div class="container">
+      <h1 class="hero__title">Brands</h1>
+      <p class="hero__lede">Browse all brands in our reviews directory.</p>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      <div id="brand-list" data-api-url="{% url 'api-brand-list' %}" data-page-size="12" data-industries-id="brand-list-industries"></div>
+      {{ industries|json_script:"brand-list-industries" }}
+      <noscript>
+        <div class="grid">
+          {% for brand in brands %}
+            {% include "catalog/_brand_card.html" %}
+          {% endfor %}
+        </div>
+      </noscript>
+    </div>
+  </section>
+{% endblock %}
+{% block scripts %}
+  <script type="module" src="{% static 'js/brand-list.js' %}"></script>
+{% endblock %}

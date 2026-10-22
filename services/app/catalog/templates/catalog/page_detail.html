@@ -1,0 +1,12 @@
+{% extends "catalog/base.html" %}
+{% block title %}{{ page.title }} | Brand Reviews{% endblock %}
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <article class="surface">
+        <h1 class="surface__title">{{ page.title }}</h1>
+        <div class="prose">{{ page.body|safe }}</div>
+      </article>
+    </div>
+  </section>
+{% endblock %}

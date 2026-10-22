@@ -1,0 +1,54 @@
+{% extends "catalog/base.html" %}
+{% load catalog_extras %}
+{% block title %}{{ brand.seo.title|default:brand.name }}{% endblock %}
+{% block meta_description %}
+  {% if brand.seo.description %}
+    <meta name="description" content="{{ brand.seo.description }}">
+  {% endif %}
+{% endblock %}
+{% block content %}
+  <section class="hero hero--plain">
+    <div class="container">
+      {% if brand.industries.all %}
+        <ul class="hero__badges">
+          {% for industry in brand.industries.all %}<li class="badge">{{ industry.name }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+      <h1 class="hero__title">{{ brand.name }}</h1>
+      <p class="hero__rating">{% stars brand.average_rating show_value=True %} <span class="hero__count">({{ brand.review_count }} review{{ brand.review_count|pluralize }})</span></p>
+      <dl class="facts">
+        {% if brand.headquarters %}<div class="facts__item"><dt class="facts__label">HQ:</dt><dd class="facts__value">{{ brand.headquarters }}</dd></div>{% endif %}
+        {% if brand.founded_year %}<div class="facts__item"><dt class="facts__label">Founded:</dt><dd class="facts__value">{{ brand.founded_year }}</dd></div>{% endif %}
+        {# djlint:off #}
+        {% with host=brand.website_url|web_host %}
+          {% if host %}<div class="facts__item"><dt class="facts__label">Website:</dt><dd class="facts__value"><a href="{{ brand.website_url }}" rel="nofollow noopener" target="_blank">{{ host }}</a></dd></div>{% endif %}
+        {% endwith %}
+        {# djlint:on #}
+      </dl>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      <div class="surface prose">{{ brand.description|safe }}</div>
+    </div>
+  </section>
+  <section class="section" aria-labelledby="reviews-heading">
+    <div class="container">
+      <div class="section__header">
+        <h2 class="section__title" id="reviews-heading">Customer Reviews</h2>
+      </div>
+      {% for review in reviews %}
+        <article class="review">
+          <header class="review__header">
+            <h3 class="review__title"><a class="review__link" href="{{ review.get_absolute_url }}">{{ review.title }}</a></h3>
+            {% stars review.rating %}
+          </header>
+          <p class="review__byline">{% if review.reviewer %}{{ review.reviewer.display_name }}{% endif %}{% if review.reviewer_location %}, {{ review.reviewer_location }}{% endif %} · <time datetime="{{ review.published_at|date:'Y-m-d' }}">{{ review.published_at|date:"M j, Y" }}</time></p>
+          <div class="review__body prose">{{ review.body|safe }}</div>
+        </article>
+      {% empty %}
+        <p>No reviews yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

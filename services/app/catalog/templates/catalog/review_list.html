@@ -1,0 +1,31 @@
+{% extends "catalog/base.html" %}
+{% load catalog_extras %}
+{% block title %}Reviews Archive{% if page_obj.number > 1 %} (page {{ page_obj.number }}){% endif %} | Brand Reviews{% endblock %}
+{% block content %}
+  <section class="hero hero--compact">
+    <div class="container">
+      <h1 class="hero__title">All Reviews</h1>
+      <p class="hero__lede">Honest customer feedback from real users.</p>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      {% for review in page_obj %}
+        <article class="review">
+          <header class="review__header">
+            <div>
+              <p class="review__brand"><a href="{{ review.brand.get_absolute_url }}">{{ review.brand.name }}</a></p>
+              <h2 class="review__title"><a class="review__link" href="{{ review.get_absolute_url }}">{{ review.title }}</a></h2>
+            </div>
+            {% stars review.rating %}
+          </header>
+          <p class="review__byline">{% if review.reviewer %}{{ review.reviewer.display_name }}{% endif %}{% if review.reviewer_location %}, {{ review.reviewer_location }}{% endif %} · <time datetime="{{ review.published_at|date:'Y-m-d' }}">{{ review.published_at|date:"M j, Y" }}</time></p>
+          <p class="review__body">{{ review.body|excerpt:40 }}</p>
+        </article>
+      {% empty %}
+        <p>No reviews yet.</p>
+      {% endfor %}
+      {% include "catalog/_review_pagination.html" %}
+    </div>
+  </section>
+{% endblock %}
