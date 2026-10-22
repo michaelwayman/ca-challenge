@@ -1,0 +1,49 @@
+@use '../abstracts/mixins' as m;
+@use '../abstracts/tokens' as t;
+
+// Removable tags with a Clear all link (components/ui/TagList).
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: t.space(2);
+}
+
+.tags__list {
+  @include m.list-reset;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: t.space(2);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: t.space(1);
+  min-height: t.size('control-sm');
+  padding: 0 t.space(1) 0 t.space(3);
+  border: 1px solid t.color('badge-border');
+  border-radius: t.radius('pill');
+  background: t.color('badge-bg');
+  color: t.color('primary-dark');
+  font-size: t.text-size('sm');
+  font-weight: 600;
+}
+
+.tag__remove {
+  @include m.button-reset;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+
+  @include m.focus-ring(1px);
+
+  &:hover {
+    background: t.color('badge-border');
+  }
+}

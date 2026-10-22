@@ -1,0 +1,12 @@
+@use '../abstracts/mixins' as m;
+@use '../abstracts/tokens' as t;
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: t.space(5);
+
+  @include m.below('sm') {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,48 @@
+@use '../abstracts/mixins' as m;
+@use '../abstracts/tokens' as t;
+
+.site-header {
+  padding: t.space(5) 0;
+  border-bottom: 1px solid t.color('border');
+  background: t.color('surface');
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: t.space(6);
+
+  @include m.below('sm') {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: t.space(3);
+  }
+}
+
+.site-header__title {
+  margin: 0;
+  font-size: t.text-size('xl');
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.site-header__link {
+  color: t.color('text');
+}
+
+.site-nav {
+  display: flex;
+  gap: t.space(5);
+  font-size: t.text-size('md');
+}
+
+.site-nav__link {
+  color: t.color('text');
+  font-weight: 500;
+
+  &:hover,
+  &[aria-current='page'] {
+    color: t.color('primary');
+  }
+}

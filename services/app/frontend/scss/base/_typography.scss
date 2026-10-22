@@ -1,0 +1,28 @@
+@use '../abstracts/tokens' as t;
+
+html,
+body {
+  background: t.color('bg');
+  color: t.color('text');
+  font-family: var(--font-sans);
+  line-height: 1.55;
+}
+
+// Relative size, so the user's browser font-size setting is respected.
+html {
+  font-size: 100%;
+}
+
+a {
+  color: t.color('primary');
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid t.color('primary');
+    outline-offset: 2px;
+  }
+}

@@ -1,0 +1,51 @@
+@use 'sass:map';
+@use 'tokens' as t;
+
+// Desktop-first, like the reference theme: styles below the breakpoint override.
+@mixin below($name) {
+  @if not map.has-key(t.$breakpoints, $name) {
+    @error "Unknown breakpoint #{inspect($name)}. Available: #{map.keys(t.$breakpoints)}";
+  }
+
+  @media (max-width: map.get(t.$breakpoints, $name)) {
+    @content;
+  }
+}
+
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}
+
+@mixin list-reset {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The one keyboard focus ring. Include it inside the element's rule.
+@mixin focus-ring($offset: 2px) {
+  &:focus-visible {
+    outline: 2px solid t.color('primary');
+    outline-offset: $offset;
+  }
+}
+
+// A <button> that looks like plain text until the component styles it.
+@mixin button-reset {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+// The bordered, rounded, white panel shared by cards, reviews and content blocks.
+@mixin surface {
+  padding: t.space(6);
+  border: 1px solid t.color('border');
+  border-radius: t.radius('md');
+  background: t.color('surface');
+}

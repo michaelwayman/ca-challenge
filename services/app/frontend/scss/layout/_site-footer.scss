@@ -1,0 +1,9 @@
+@use '../abstracts/tokens' as t;
+
+.site-footer {
+  margin-top: t.space(16);
+  padding: t.space(8) 0;
+  background: t.color('footer-bg');
+  color: t.color('footer-text');
+  font-size: t.text-size('sm');
+}

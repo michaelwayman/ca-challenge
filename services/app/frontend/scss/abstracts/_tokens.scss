@@ -1,0 +1,139 @@
+// Design tokens: the one place a value is defined. Each map is emitted as CSS custom
+// properties by base/_root.scss, so runtime code (the React component, a future theme)
+// can read them. Components never write a raw value; they call the functions below,
+// which fail the build on a misspelled token instead of producing invalid CSS.
+
+@use 'sass:map';
+
+$colors: (
+  'bg': #f7f7f5,
+  'surface': #fff,
+  'text': #1a1a1a,
+  'text-soft': #374151,
+  'muted': #6b7280,
+  'border': #e5e7eb,
+  'primary': #0f766e,
+  'primary-dark': #115e59,
+  'primary-deep': #134e4a,
+  'on-primary': #fff,
+  'accent': #f59e0b,
+  'star': #f59e0b,
+  'star-empty': #d1d5db,
+  'badge-bg': #ecfdf5,
+  'badge-border': #d1fae5,
+  'footer-bg': #111827,
+  'footer-text': #d1d5db,
+  'footer-link': #9ca3af,
+  'danger-bg': #fef2f2,
+  'danger-border': #fecaca,
+  'danger-text': #991b1b,
+);
+
+// 4px-based scale in rem so spacing follows the user's font-size setting.
+$space: (
+  1: 0.25rem,
+  2: 0.5rem,
+  3: 0.75rem,
+  4: 1rem,
+  5: 1.25rem,
+  6: 1.5rem,
+  8: 2rem,
+  10: 2.5rem,
+  12: 3rem,
+  14: 3.5rem,
+  16: 4rem,
+);
+$font-sizes: (
+  'xs': 0.75rem,
+  'sm': 0.875rem,
+  'md': 1rem,
+  'lg': 1.125rem,
+  'xl': 1.25rem,
+  '2xl': 1.5rem,
+  '3xl': 1.75rem,
+  '4xl': 2rem,
+  '5xl': 2.25rem,
+);
+$radii: (
+  'sm': 6px,
+  'md': 10px,
+  'pill': 999px,
+);
+$shadows: (
+  'sm': 0 1px 2px rgb(0 0 0 / 4%),
+  'md': 0 2px 8px rgb(0 0 0 / 6%),
+  'popover': 0 8px 24px rgb(0 0 0 / 12%),
+);
+
+// Sizes components share: touch targets, the checkbox/radio mark and the popover widths.
+$sizes: (
+  'control': 2.75rem,
+  'control-sm': 2rem,
+  'mark': 1.125rem,
+  'menu': 17rem,
+  'menu-sm': 13rem,
+);
+$durations: (
+  'fast': 0.15s,
+);
+$layers: (
+  'popover': 20,
+);
+$font-sans: (
+  -apple-system,
+  blinkmacsystemfont,
+  'Segoe UI',
+  roboto,
+  oxygen,
+  ubuntu,
+  cantarell,
+  'Helvetica Neue',
+  arial,
+  sans-serif
+);
+$max-width: 1100px;
+
+// Breakpoints are Sass-only: custom properties cannot be used in media queries.
+$breakpoints: (
+  'sm': 640px,
+);
+
+@function -token($map, $key, $kind) {
+  @if not map.has-key($map, $key) {
+    @error "Unknown #{$kind} token #{inspect($key)}. Available: #{map.keys($map)}";
+  }
+
+  @return $key;
+}
+
+@function color($name) {
+  @return var(--color-#{-token($colors, $name, 'color')});
+}
+
+@function space($step) {
+  @return var(--space-#{-token($space, $step, 'space')});
+}
+
+@function text-size($name) {
+  @return var(--font-size-#{-token($font-sizes, $name, 'font size')});
+}
+
+@function radius($name) {
+  @return var(--radius-#{-token($radii, $name, 'radius')});
+}
+
+@function size($name) {
+  @return var(--size-#{-token($sizes, $name, 'size')});
+}
+
+@function duration($name) {
+  @return var(--duration-#{-token($durations, $name, 'duration')});
+}
+
+@function layer($name) {
+  @return var(--layer-#{-token($layers, $name, 'layer')});
+}
+
+@function shadow($name) {
+  @return var(--shadow-#{-token($shadows, $name, 'shadow')});
+}

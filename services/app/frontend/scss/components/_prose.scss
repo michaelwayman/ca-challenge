@@ -1,0 +1,15 @@
+@use '../abstracts/tokens' as t;
+
+// Rich text from the CMS. The only place child selectors are allowed, because the
+// markup inside is not ours to add classes to.
+.prose {
+  font-size: t.text-size('md');
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+}

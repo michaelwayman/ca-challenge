@@ -1,0 +1,13 @@
+@use '../abstracts/tokens' as t;
+
+.badge {
+  display: inline-block;
+  padding: t.space(1) t.space(3);
+  border: 1px solid t.color('badge-border');
+  border-radius: t.radius('pill');
+  background: t.color('badge-bg');
+  color: t.color('primary-dark');
+  font-size: t.text-size('xs');
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}

@@ -1,0 +1,51 @@
+@use '../abstracts/mixins' as m;
+@use '../abstracts/tokens' as t;
+
+.button {
+  min-height: t.size('control');
+  padding: t.space(2) t.space(4);
+  border: 1px solid t.color('primary');
+  border-radius: t.radius('sm');
+  background: t.color('primary');
+  color: t.color('on-primary');
+  font: inherit;
+  font-size: t.text-size('sm');
+  font-weight: 600;
+  cursor: pointer;
+
+  @include m.focus-ring;
+
+  &:hover {
+    background: t.color('primary-dark');
+  }
+}
+
+.button--small {
+  min-height: t.size('control-sm');
+  padding: 0 t.space(4);
+}
+
+.button--ghost {
+  background: transparent;
+  color: t.color('primary');
+
+  &:hover {
+    background: t.color('badge-bg');
+  }
+}
+
+// Reads as a link: for secondary actions such as Clear.
+.button--link {
+  min-height: t.size('control-sm');
+  padding: 0 t.space(2);
+  border: 0;
+  background: none;
+  color: t.color('primary');
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:hover {
+    background: none;
+    color: t.color('primary-dark');
+  }
+}

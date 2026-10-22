@@ -1,0 +1,79 @@
+@use '../abstracts/mixins' as m;
+@use '../abstracts/tokens' as t;
+
+// The title size is a custom property so a variant or breakpoint can change it
+// without a descendant selector.
+.hero {
+  --hero-title-size: #{t.text-size('5xl')};
+
+  padding: t.space(16) 0 t.space(14);
+  background: linear-gradient(135deg, t.color('primary') 0%, t.color('primary-deep') 100%);
+  color: t.color('on-primary');
+
+  @include m.below('sm') {
+    --hero-title-size: #{t.text-size('3xl')};
+
+    padding: t.space(10) 0;
+  }
+}
+
+// Declared after .hero on purpose: it resets the size the breakpoint above sets.
+.hero--plain {
+  --hero-title-size: #{t.text-size('4xl')};
+
+  padding: t.space(10) 0;
+  border-bottom: 1px solid t.color('border');
+  background: t.color('surface');
+  color: t.color('text');
+}
+
+// The archive pages' hero: the same gradient with less padding (WordPress sets 48px inline).
+// Declared after .hero so its padding wins, and with its own breakpoint for the same reason.
+.hero--compact {
+  padding: t.space(12) 0;
+
+  @include m.below('sm') {
+    padding: t.space(10) 0;
+  }
+}
+
+.hero__title {
+  margin: 0 0 t.space(3);
+  font-size: var(--hero-title-size);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hero__lede {
+  max-width: 40rem;
+  margin: 0;
+  font-size: t.text-size('lg');
+  opacity: 0.92;
+}
+
+.hero__badges {
+  @include m.list-reset;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: t.space(2);
+  margin-bottom: t.space(3);
+}
+
+.hero__rating {
+  margin: 0;
+}
+
+.hero__count {
+  margin-left: t.space(2);
+  color: t.color('muted');
+  font-size: t.text-size('sm');
+}
+
+.hero__backlink {
+  margin: 0 0 t.space(2);
+  font-size: t.text-size('sm');
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

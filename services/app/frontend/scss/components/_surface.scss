@@ -1,0 +1,11 @@
+@use '../abstracts/mixins' as m;
+@use '../abstracts/tokens' as t;
+
+.surface {
+  @include m.surface;
+}
+
+.surface__title {
+  margin-top: 0;
+  font-size: t.text-size('3xl');
+}

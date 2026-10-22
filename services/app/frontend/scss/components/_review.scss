@@ -1,0 +1,44 @@
+@use '../abstracts/mixins' as m;
+@use '../abstracts/tokens' as t;
+
+.review {
+  @include m.surface;
+
+  margin-bottom: t.space(4);
+}
+
+.review__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: t.space(4);
+  margin-bottom: t.space(2);
+}
+
+.review__brand {
+  margin: 0 0 t.space(1);
+  font-size: t.text-size('xs');
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.review__title {
+  margin: 0;
+  font-size: t.text-size('md');
+  font-weight: 600;
+}
+
+.review__link {
+  color: t.color('text');
+}
+
+.review__byline {
+  margin: t.space(1) 0 t.space(3);
+  color: t.color('muted');
+  font-size: t.text-size('sm');
+}
+
+.review__body {
+  color: t.color('text-soft');
+}

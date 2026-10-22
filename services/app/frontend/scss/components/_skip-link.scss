@@ -1,0 +1,16 @@
+@use '../abstracts/tokens' as t;
+
+// Off-screen until keyboard focus reaches it.
+.skip-link {
+  position: absolute;
+  z-index: 10;
+  inset: t.space(4) auto auto t.space(4);
+  padding: t.space(2) t.space(4);
+  transform: translateY(-200%);
+  border-radius: t.radius('sm');
+  background: t.color('surface');
+
+  &:focus {
+    transform: translateY(0);
+  }
+}

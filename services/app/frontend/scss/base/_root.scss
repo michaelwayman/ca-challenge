@@ -1,0 +1,21 @@
+@use '../abstracts/tokens' as t;
+
+@mixin -emit($prefix, $map) {
+  @each $key, $value in $map {
+    --#{$prefix}-#{$key}: #{$value};
+  }
+}
+
+:root {
+  @include -emit('color', t.$colors);
+  @include -emit('space', t.$space);
+  @include -emit('font-size', t.$font-sizes);
+  @include -emit('radius', t.$radii);
+  @include -emit('shadow', t.$shadows);
+  @include -emit('size', t.$sizes);
+  @include -emit('duration', t.$durations);
+  @include -emit('layer', t.$layers);
+
+  --max-width: #{t.$max-width};
+  --font-sans: #{t.$font-sans};
+}

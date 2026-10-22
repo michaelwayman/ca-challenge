@@ -1,0 +1,28 @@
+@use '../abstracts/tokens' as t;
+
+.section {
+  padding: t.space(12) 0;
+}
+
+// Full-bleed white band with hairlines, used to separate stacked sections.
+.section--alt {
+  border-block: 1px solid t.color('border');
+  background: t.color('surface');
+}
+
+.section__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: t.space(6);
+}
+
+.section__title {
+  margin: 0;
+  font-size: t.text-size('2xl');
+  letter-spacing: -0.01em;
+}
+
+.section__link {
+  font-size: t.text-size('sm');
+}

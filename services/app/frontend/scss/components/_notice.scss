@@ -1,0 +1,19 @@
+@use '../abstracts/mixins' as m;
+@use '../abstracts/tokens' as t;
+
+// A message in place of content: nothing found, or something went wrong.
+.notice {
+  @include m.surface;
+
+  margin-bottom: t.space(4);
+}
+
+.notice--error {
+  border-color: t.color('danger-border');
+  background: t.color('danger-bg');
+  color: t.color('danger-text');
+}
+
+.notice__message {
+  margin: 0 0 t.space(3);
+}

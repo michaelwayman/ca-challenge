@@ -1,0 +1,86 @@
+@use '../abstracts/mixins' as m;
+@use '../abstracts/tokens' as t;
+
+.card {
+  @include m.surface;
+
+  display: flex;
+  flex-direction: column;
+  gap: t.space(3);
+  box-shadow: t.shadow('sm');
+  transition:
+    box-shadow t.duration('fast'),
+    transform t.duration('fast');
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: t.shadow('md');
+  }
+
+  @include m.reduced-motion {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+.card__badges {
+  @include m.list-reset;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: t.space(2);
+}
+
+.card__title {
+  margin: 0;
+  font-size: t.text-size('lg');
+  font-weight: 600;
+}
+
+.card__link {
+  color: t.color('text');
+}
+
+.card__rating {
+  margin: 0;
+}
+
+.card__count {
+  margin-left: t.space(2);
+  color: t.color('muted');
+  font-size: t.text-size('sm');
+}
+
+.card__meta {
+  margin: 0;
+  color: t.color('muted');
+  font-size: t.text-size('sm');
+}
+
+.card__excerpt {
+  margin: 0;
+  color: t.color('text-soft');
+  font-size: t.text-size('sm');
+}
+
+// A review quoted inside a card (the brand cards' top review).
+.card__quote {
+  margin: 0;
+  padding-left: t.space(3);
+  border-left: 3px solid t.color('badge-border');
+}
+
+.card__snippet {
+  margin: 0 0 t.space(2);
+  color: t.color('text-soft');
+  font-size: t.text-size('sm');
+  font-style: italic;
+}
+
+.card__attribution {
+  color: t.color('muted');
+  font-size: t.text-size('xs');
+}

@@ -1,0 +1,37 @@
+@use '../abstracts/tokens' as t;
+
+// The marks that show a row is chosen. Both are drawn by hand so they match the theme.
+
+// A real checkbox (so it keeps its keyboard and screen reader behavior).
+.checkbox {
+  flex: none;
+  width: t.size('mark');
+  height: t.size('mark');
+  margin: 0;
+  border: 1.5px solid t.color('muted');
+  border-radius: t.space(1);
+  background: t.color('surface');
+  appearance: none;
+
+  &:checked {
+    border-color: t.color('primary');
+    background: t.color('primary')
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5L20 7'/%3E%3C/svg%3E")
+      center / 75% no-repeat;
+  }
+}
+
+// A decorative dot for a row inside a listbox (the row itself carries the semantics).
+.radio {
+  flex: none;
+  width: t.size('mark');
+  height: t.size('mark');
+  border: 1.5px solid t.color('muted');
+  border-radius: 50%;
+  background: t.color('surface');
+}
+
+.radio--checked {
+  border-color: t.color('primary');
+  background: radial-gradient(circle, t.color('primary') 0 40%, t.color('surface') 45%);
+}

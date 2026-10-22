@@ -1,0 +1,24 @@
+@use '../abstracts/tokens' as t;
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: t.space(4);
+  margin: t.space(4) 0 0;
+  color: t.color('muted');
+  font-size: t.text-size('md');
+}
+
+.facts__item {
+  display: flex;
+  gap: t.space(1);
+}
+
+.facts__label {
+  color: t.color('text');
+  font-weight: 700;
+}
+
+.facts__value {
+  margin: 0;
+}

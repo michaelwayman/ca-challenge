@@ -1,0 +1,23 @@
+{
+  "extends": ["stylelint-config-standard-scss"],
+  "rules": {
+    "selector-class-pattern": [
+      "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:__[a-z0-9]+(?:-[a-z0-9]+)*)?(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$",
+      { "message": "Use BEM: block, block__element or block--modifier (lowercase, hyphenated)." }
+    ],
+    "selector-max-compound-selectors": 1,
+    "max-nesting-depth": [2, { "ignoreAtRules": ["include", "media"] }],
+    "selector-max-id": 0,
+    "selector-max-type": 0
+  },
+  "overrides": [
+    {
+      "files": ["scss/base/**/*.scss"],
+      "rules": { "selector-max-type": null }
+    },
+    {
+      "files": ["scss/components/_prose.scss"],
+      "rules": { "selector-max-compound-selectors": 2 }
+    }
+  ]
+}
