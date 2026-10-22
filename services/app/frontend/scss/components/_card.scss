@@ -37,7 +37,7 @@
 .card__title {
   margin: 0;
   font-size: t.text-size('lg');
-  font-weight: 600;
+  font-weight: t.weight('semibold');
 }
 
 .card__link {

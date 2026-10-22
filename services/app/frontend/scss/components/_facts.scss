@@ -16,7 +16,7 @@
 
 .facts__label {
   color: t.color('text');
-  font-weight: 700;
+  font-weight: t.weight('bold');
 }
 
 .facts__value {

@@ -238,6 +238,7 @@ Asked for after the original scope: the "Reviews" and "About" pages WordPress ha
 - **Enforcement:** stylelint (`standard-scss`) plus a BEM class-name pattern, max one compound selector, no ids, no type selectors outside `base/`. `pnpm lint` runs ESLint and stylelint.
 - **Verification:** `scripts/check-parity.mjs` (part of `pnpm test`) compiles the SCSS and checks that each of the 53 mapped rules in the reference CSS has a counterpart setting the same properties (`scripts/parity-map.json`; longhands count as their shorthand), and that every class used in the Django templates has CSS. 10 reference rules are skipped on purpose and listed with reasons in the map (nav, section-header links, footer links, pagination). A copy of the reference stylesheet is committed at `services/app/frontend/reference/theme.css`. Values are not compared, since they snap to the scale.
 - **Checked visually** against live WordPress on the homepage, a brand page and a review page at desktop and 375px, with no horizontal overflow on mobile.
+- **Changed after a practice panel review: font weights became tokens, and the token rule was reworded.** Review finding: the header of `_tokens.scss` said components never write a raw value, while 14 rules wrote `font-weight: 500/600/700`. Those now use `t.weight('medium' | 'semibold' | 'bold')`. The header now says one-off layout literals (a grid's minimum column width, border widths, an icon offset) are written in place and become tokens when a second component needs them.
 
 ## Implementation notes: server-rendered pages
 

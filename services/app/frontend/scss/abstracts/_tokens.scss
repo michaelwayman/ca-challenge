@@ -1,7 +1,10 @@
 // Design tokens: the one place a value is defined. Each map is emitted as CSS custom
 // properties by base/_root.scss, so runtime code (the React component, a future theme)
-// can read them. Components never write a raw value; they call the functions below,
-// which fail the build on a misspelled token instead of producing invalid CSS.
+// can read them. Colour, spacing, type size and weight, radius, shadow, control sizes,
+// durations and layers always come from here, through the functions below, which fail
+// the build on a misspelled token instead of producing invalid CSS. One-off layout
+// values (a grid's minimum column width, a 1-3px border, an icon offset) are written
+// where they are used; a value that a second component needs becomes a token.
 
 @use 'sass:map';
 
@@ -53,6 +56,11 @@ $font-sizes: (
   '3xl': 1.75rem,
   '4xl': 2rem,
   '5xl': 2.25rem,
+);
+$font-weights: (
+  'medium': 500,
+  'semibold': 600,
+  'bold': 700,
 );
 $radii: (
   'sm': 6px,
@@ -116,6 +124,10 @@ $breakpoints: (
 
 @function text-size($name) {
   @return var(--font-size-#{-token($font-sizes, $name, 'font size')});
+}
+
+@function weight($name) {
+  @return var(--font-weight-#{-token($font-weights, $name, 'font weight')});
 }
 
 @function radius($name) {

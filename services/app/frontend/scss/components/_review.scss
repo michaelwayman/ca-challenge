@@ -18,7 +18,7 @@
 .review__brand {
   margin: 0 0 t.space(1);
   font-size: t.text-size('xs');
-  font-weight: 600;
+  font-weight: t.weight('semibold');
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -26,7 +26,7 @@
 .review__title {
   margin: 0;
   font-size: t.text-size('md');
-  font-weight: 600;
+  font-weight: t.weight('semibold');
 }
 
 .review__link {

@@ -10,6 +10,7 @@
   @include -emit('color', t.$colors);
   @include -emit('space', t.$space);
   @include -emit('font-size', t.$font-sizes);
+  @include -emit('font-weight', t.$font-weights);
   @include -emit('radius', t.$radii);
   @include -emit('shadow', t.$shadows);
   @include -emit('size', t.$sizes);

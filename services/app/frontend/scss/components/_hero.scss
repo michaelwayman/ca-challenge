@@ -40,7 +40,7 @@
 .hero__title {
   margin: 0 0 t.space(3);
   font-size: var(--hero-title-size);
-  font-weight: 700;
+  font-weight: t.weight('bold');
   letter-spacing: -0.02em;
 }
 
@@ -73,7 +73,7 @@
 .hero__backlink {
   margin: 0 0 t.space(2);
   font-size: t.text-size('sm');
-  font-weight: 600;
+  font-weight: t.weight('semibold');
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }

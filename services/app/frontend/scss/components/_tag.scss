@@ -28,7 +28,7 @@
   background: t.color('badge-bg');
   color: t.color('primary-dark');
   font-size: t.text-size('sm');
-  font-weight: 600;
+  font-weight: t.weight('semibold');
 }
 
 .tag__remove {
