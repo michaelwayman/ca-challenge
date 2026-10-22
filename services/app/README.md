@@ -1,14 +1,14 @@
 # app: the main site
 
-The Django app that replaces the WordPress site. It serves the brand, review and static pages at the same
+The Django app that replaces the WordPress site. It serves the home, brand and review pages at the same
 URLs as WordPress, the brand-listing API, and a React `<BrandList />` on `/brand/`. It owns the domain data
-(brands, industries, reviewers, reviews, pages). It stores no passwords and no roles: tokens are verified locally
+(brands, industries, reviewers, reviews). It stores no passwords and no roles: tokens are verified locally
 against the [auth service](../auth/README.md)'s public keys, and the one write endpoint asks the auth service for
 the caller's current roles.
 
 | | |
 |---|---|
-| Pages | `/`, `/brand/`, `/brand/<slug>/`, `/review/`, `/review/<slug>/`, `/about/`, `/contact/` |
+| Pages | `/`, `/brand/`, `/brand/<slug>/`, `/review/<slug>/` |
 | API | `GET /api/brands/` (`industry`, `ordering`, `page`, `page_size`), `GET` and `PATCH /api/brands/<slug>/` (editor only) |
 | Code | `catalog/` (models, views, API, importer), `frontend/` (React and SCSS), `templates/` |
 

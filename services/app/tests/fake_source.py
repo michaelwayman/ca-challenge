@@ -5,16 +5,12 @@ from catalog.management.commands.wp_migration.source import WPPost, WPTerm, WPUs
 
 
 class FakeSource:
-    def __init__(
-        self, industries=(), brands=(), reviews=(), users=(), links=None, pages=(), front_page=None
-    ):
+    def __init__(self, industries=(), brands=(), reviews=(), users=(), links=None):
         self._industries = list(industries)
         self._brands = list(brands)
         self._reviews = list(reviews)
         self._users = list(users)
         self._links = links or {}
-        self._pages = list(pages)
-        self._front_page = front_page
 
     def industries(self):
         return list(self._industries)
@@ -24,12 +20,6 @@ class FakeSource:
 
     def reviews(self):
         return list(self._reviews)
-
-    def pages(self):
-        return list(self._pages)
-
-    def front_page_id(self):
-        return self._front_page
 
     def users(self):
         return list(self._users)
@@ -67,10 +57,6 @@ def review_post(wp_id=12, slug="great", title="Great", content="<p>Nice</p>", au
         **meta,
     }
     return WPPost(wp_id, slug, title, content, datetime(2026, 5, 19, 20, 29, 13), author, meta)
-
-
-def page_post(wp_id=5, slug="about", title="About", content="<p>About us</p>", parent_id=0):
-    return WPPost(wp_id, slug, title, content, datetime(2026, 5, 19, 20, 29, 1), 0, {}, parent_id)
 
 
 def standard_source(**overrides):

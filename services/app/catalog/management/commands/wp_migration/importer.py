@@ -5,7 +5,7 @@ from datetime import UTC
 from django.db import models, transaction
 
 from ca_authlib.ids import user_id_from_wp_id
-from catalog.models import RESERVED_PAGE_SLUGS, Brand, Industry, Page, Review, Reviewer
+from catalog.models import Brand, Industry, Review, Reviewer
 from catalog.sanitize import sanitize_html
 
 from .source import WordPressSource, WPPost
@@ -48,8 +48,6 @@ class Importer:
             terms = self.source.industries()
             brands = self.source.brands()
             reviews = self.source.reviews()
-            pages = self.source.pages()
-            front_page_id = self.source.front_page_id()
             author_ids = {r.author_id for r in reviews}
             users = [u for u in self.source.users() if u.wp_id in author_ids]
 
@@ -57,7 +55,6 @@ class Importer:
             brand_map = self._import_brands(brands, industries)
             reviewer_map = self._import_reviewers(users)
             self._import_reviews(reviews, brand_map, reviewer_map)
-            importable_pages = self._import_pages(pages, front_page_id)
             if self.prune:
                 self._prune(
                     [
@@ -65,7 +62,6 @@ class Importer:
                         (Reviewer, {u.wp_id for u in users}),
                         (Brand, {b.wp_id for b in brands}),
                         (Industry, {t.wp_id for t in terms}),
-                        (Page, {p.wp_id for p in importable_pages}),
                     ]
                 )
             if self.dry_run:
@@ -159,27 +155,6 @@ class Importer:
                 f"{name_mismatches} reviews have a reviewer_name that differs from the "
                 "author's display name; the display name was kept"
             )
-
-    def _import_pages(self, pages: list[WPPost], front_page_id: int | None) -> list[WPPost]:
-        """Static pages. The page WordPress uses as its home page is left out (the front page
-        is the dynamic one here); nested pages and slugs that would shadow a route are
-        skipped with a warning."""
-        existing = self._existing(Page)
-        importable = []
-        for post in pages:
-            if post.wp_id == front_page_id:
-                continue
-            if post.parent_id:
-                self._skip(Page, f"page {post.wp_id} ({post.slug}): nested pages are not supported")
-                continue
-            if post.slug in RESERVED_PAGE_SLUGS:
-                self._skip(Page, f"page {post.wp_id} ({post.slug}): slug collides with a route")
-                continue
-            values = {"slug": post.slug, "title": post.title, "body": sanitize_html(post.content)}
-            _, status = self._sync(Page, existing, post.wp_id, values)
-            self._count(Page, status)
-            importable.append(post)
-        return importable
 
     def _prune(self, targets: list[tuple[type[models.Model], set[int]]]):
         for model, source_ids in targets:

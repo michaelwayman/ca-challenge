@@ -14,11 +14,9 @@
       <div class="container site-header__inner">
         <p class="site-header__title"><a class="site-header__link" href="{% url 'home' %}">Brand Reviews</a></p>
         <nav class="site-nav" aria-label="Primary">
-          {% url 'home' as home_url %}{% url 'brand-list' as brands_url %}{% url 'review-list' as reviews_url %}{% url 'page-detail' 'about' as about_url %}
+          {% url 'home' as home_url %}{% url 'brand-list' as brands_url %}
           <a class="site-nav__link" href="{{ home_url }}" {% if request.path == home_url %} aria-current="page"{% endif %}>Home</a>
           <a class="site-nav__link" href="{{ brands_url }}" {% if request.path == brands_url %} aria-current="page"{% endif %}>Brands</a>
-          <a class="site-nav__link" href="{{ reviews_url }}" {% if request.path == reviews_url or '/review/page/' in request.path %} aria-current="page"{% endif %}>Reviews</a>
-          <a class="site-nav__link" href="{{ about_url }}" {% if request.path == about_url %} aria-current="page"{% endif %}>About</a>
         </nav>
       </div>
     </header>

@@ -39,18 +39,12 @@ class WPPost:
     published_gmt: datetime  # naive, UTC
     author_id: int
     meta: dict[str, str] = field(default_factory=dict)
-    parent_id: int = 0  # non-zero for a child page, which WordPress serves at /parent/child/
 
 
 class WordPressSource(Protocol):
     def industries(self) -> list[WPTerm]: ...
     def brands(self) -> list[WPPost]: ...
     def reviews(self) -> list[WPPost]: ...
-    def pages(self) -> list[WPPost]: ...
-    def front_page_id(self) -> int | None:
-        """The static page WordPress shows as the home page, if it is set up that way."""
-        ...
-
     def users(self) -> list[WPUser]: ...
     def brand_industries(self) -> dict[int, list[int]]:
         """Brand wp_id -> industry term ids."""
@@ -131,41 +125,21 @@ class MariaDBSource:
     def reviews(self) -> list[WPPost]:
         return self._posts("review", REVIEW_META_KEYS)
 
-    def pages(self) -> list[WPPost]:
-        return self._posts("page", ())
-
-    def front_page_id(self) -> int | None:
-        options = {
-            r["option_name"]: r["option_value"]
-            for r in self._query(
-                f"SELECT option_name, option_value FROM {self._table('options')} "  # noqa: S608
-                "WHERE option_name IN ('show_on_front', 'page_on_front')"
-            )
-        }
-        if options.get("show_on_front") != "page":
-            return None
-        return int(options.get("page_on_front") or 0) or None
-
     def _posts(self, post_type: str, meta_keys: tuple[str, ...]) -> list[WPPost]:
         posts = self._table("posts")
         rows = self._query(
-            "SELECT ID, post_name, post_title, post_content, post_date_gmt, post_author, "  # noqa: S608
-            "post_parent "
+            "SELECT ID, post_name, post_title, post_content, post_date_gmt, post_author "  # noqa: S608
             f"FROM {posts} WHERE post_type = %s AND post_status = 'publish' ORDER BY ID",
             (post_type,),
         )
         placeholders = ", ".join(["%s"] * len(meta_keys))
         meta: dict[int, dict[str, str]] = {}
-        meta_rows = (
-            self._query(
-                "SELECT m.post_id, m.meta_key, m.meta_value "  # noqa: S608
-                f"FROM {self._table('postmeta')} m JOIN {posts} p ON p.ID = m.post_id "
-                "WHERE p.post_type = %s AND p.post_status = 'publish' "
-                f"AND m.meta_key IN ({placeholders}) ORDER BY m.meta_id",
-                (post_type, *meta_keys),
-            )
-            if meta_keys  # `IN ()` is a syntax error, and pages need no meta
-            else []
+        meta_rows = self._query(
+            "SELECT m.post_id, m.meta_key, m.meta_value "  # noqa: S608
+            f"FROM {self._table('postmeta')} m JOIN {posts} p ON p.ID = m.post_id "
+            "WHERE p.post_type = %s AND p.post_status = 'publish' "
+            f"AND m.meta_key IN ({placeholders}) ORDER BY m.meta_id",
+            (post_type, *meta_keys),
         )
         for r in meta_rows:
             meta.setdefault(r["post_id"], {})[r["meta_key"]] = r["meta_value"] or ""
@@ -178,7 +152,6 @@ class MariaDBSource:
                 published_gmt=r["post_date_gmt"],
                 author_id=r["post_author"],
                 meta=meta.get(r["ID"], {}),
-                parent_id=r["post_parent"],
             )
             for r in rows
         ]

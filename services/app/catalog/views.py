@@ -1,15 +1,10 @@
-from django.core.paginator import EmptyPage, Paginator
 from django.db.models import Count, F
-from django.http import Http404
-from django.shortcuts import redirect, render
-from django.urls import reverse
 from django.views.generic import DetailView, TemplateView
 
-from .models import Brand, Industry, Page, Review
+from .models import Brand, Industry, Review
 
 FEATURED_BRANDS = 6
 RECENT_REVIEWS = 6
-REVIEWS_PER_PAGE = 10  # WordPress's posts_per_page for this site, so the pages line up
 
 
 class HomeView(TemplateView):
@@ -59,29 +54,3 @@ class BrandDetailView(DetailView):
 class ReviewDetailView(DetailView):
     queryset = Review.objects.select_related("brand", "reviewer")
     template_name = "catalog/review_detail.html"
-
-
-def review_list(request, page=1):
-    """The reviews archive: /review/ and /review/page/<n>/, ten to a page, as in WordPress."""
-    if page == 1 and request.path != reverse("review-list"):
-        return redirect("review-list", permanent=True)  # /review/page/1/ is just /review/
-    paginator = Paginator(Review.objects.select_related("brand", "reviewer"), REVIEWS_PER_PAGE)
-    try:
-        page_obj = paginator.page(page)
-    except EmptyPage as exc:
-        raise Http404("No such page.") from exc
-    # First, last, and the current page with its neighbours; None marks a gap.
-    page_items = [
-        None if n == paginator.ELLIPSIS else n
-        for n in paginator.get_elided_page_range(page, on_each_side=1, on_ends=1)
-    ]
-    return render(
-        request, "catalog/review_list.html", {"page_obj": page_obj, "page_items": page_items}
-    )
-
-
-class PageDetailView(DetailView):
-    """A static page at /<slug>/ (About, Contact, ...)."""
-
-    queryset = Page.objects.all()
-    template_name = "catalog/page_detail.html"

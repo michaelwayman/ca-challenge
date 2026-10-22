@@ -89,13 +89,6 @@ class TestStoredHtmlIsSanitizedOnSave:
 
         self.assert_safe(Review.objects.get(pk=review.pk).body)
 
-    def test_page_body(self):
-        from catalog.models import Page
-
-        page = Page.objects.create(slug="p", title="P", body=UNSAFE)
-
-        self.assert_safe(Page.objects.get(pk=page.pk).body)
-
     def test_clean_html_is_left_alone(self):
         link = '<a href="https://x.example" rel="noopener noreferrer nofollow">three</a>'
         html = f"<p>One <strong>two</strong> {link}</p>"

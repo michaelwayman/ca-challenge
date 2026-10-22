@@ -123,32 +123,3 @@ class Review(models.Model):
 
     def get_absolute_url(self):
         return reverse("review-detail", kwargs={"slug": self.slug})
-
-
-# Top-level routes a static page must not shadow (see config/urls.py and catalog/urls.py).
-RESERVED_PAGE_SLUGS = frozenset({"admin", "api", "brand", "healthz", "review", "static"})
-
-
-class Page(models.Model):
-    """A static page (About, Contact, ...), served at /<slug>/ like WordPress does."""
-
-    wp_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    slug = models.SlugField(max_length=200, unique=True)
-    title = models.CharField(max_length=200)
-    body = models.TextField(blank=True)  # sanitized HTML (save() cleans it)
-
-    class Meta:
-        ordering = ["title"]
-
-    def __str__(self):
-        return self.title
-
-    def save(self, *args, **kwargs):
-        self.body = sanitize_html(self.body)
-        super().save(*args, **kwargs)
-
-    def get_absolute_url(self):
-        return reverse("page-detail", kwargs={"slug": self.slug})

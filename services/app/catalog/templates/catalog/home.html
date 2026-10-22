@@ -24,7 +24,6 @@
     <div class="container">
       <div class="section__header">
         <h2 class="section__title" id="recent-heading">Recent Reviews</h2>
-        <a class="section__link" href="{% url 'review-list' %}">All reviews →</a>
       </div>
       <div class="grid">
         {% for review in recent_reviews %}{% include "catalog/_review_card.html" %}{% empty %}<p>No reviews yet.</p>{% endfor %}

@@ -10,7 +10,7 @@ import pytest
 
 from catalog.management.commands.wp_migration.importer import Importer
 from catalog.management.commands.wp_migration.source import MariaDBSource, connection_settings
-from catalog.models import Brand, Industry, Page, Review, Reviewer
+from catalog.models import Brand, Industry, Review, Reviewer
 
 pytestmark = [pytest.mark.integration, pytest.mark.django_db]
 
@@ -84,22 +84,3 @@ def test_api_serves_the_imported_site(source, client):
             key=lambda r: (r.rating, r.published_at, r.id),
         )
         assert row["top_review"]["slug"] == best.slug
-
-
-def test_imports_the_static_pages_and_serves_the_review_archive_like_wordpress(source, client):
-    Importer(source).run()
-
-    # Published pages are about, contact and sample-page; "home" is the front page, and the
-    # privacy policy is a draft.
-    assert sorted(Page.objects.values_list("slug", flat=True)) == [
-        "about",
-        "contact",
-        "sample-page",
-    ]
-    assert "honest customer reviews" in client.get("/about/").content.decode()
-    assert client.get("/home/").status_code == 404
-    assert client.get("/privacy-policy/").status_code == 404
-    # 60 reviews, ten to a page: pages 1 to 6 exist and 7 does not, exactly as WordPress.
-    assert client.get("/review/").content.decode().count('class="review"') == 10
-    assert client.get("/review/page/6/").status_code == 200
-    assert client.get("/review/page/7/").status_code == 404

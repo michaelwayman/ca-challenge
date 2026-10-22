@@ -4,12 +4,11 @@ import pytest
 
 from ca_authlib.ids import user_id_from_wp_id
 from catalog.management.commands.wp_migration.importer import Importer, PruneRefused
-from catalog.models import Brand, Industry, Page, Review, Reviewer
+from catalog.models import Brand, Industry, Review, Reviewer
 
 from .fake_source import (
     FakeSource,
     brand_post,
-    page_post,
     review_post,
     standard_source,
     term,
@@ -220,66 +219,3 @@ class TestPrune:
 
         assert report.counts["brands"].pruned == 1
         assert Brand.objects.filter(wp_id=7).exists()
-
-
-class TestPages:
-    def test_imports_pages_with_sanitized_bodies(self):
-        report = run(
-            standard_source(pages=[page_post(content="<p>Hi</p><script>alert(1)</script>")])
-        )
-
-        page = Page.objects.get()
-        assert (page.slug, page.title, page.wp_id) == ("about", "About", 5)
-        assert "<script" not in page.body
-        assert "<p>Hi</p>" in page.body
-        assert report.counts["pages"].created == 1
-
-    def test_the_front_page_is_left_out(self):
-        home = page_post(wp_id=4, slug="home", title="Home")
-
-        run(standard_source(pages=[home, page_post()], front_page=4))
-
-        assert [p.slug for p in Page.objects.all()] == ["about"]
-
-    def test_a_wordpress_without_a_static_front_page_keeps_every_page(self):
-        run(standard_source(pages=[page_post(wp_id=4, slug="home", title="Home"), page_post()]))
-
-        assert Page.objects.count() == 2
-
-    def test_nested_pages_are_skipped_with_a_warning(self):
-        report = run(standard_source(pages=[page_post(wp_id=9, slug="team", parent_id=5)]))
-
-        assert Page.objects.count() == 0
-        assert report.counts["pages"].skipped == 1
-        assert any("nested" in w for w in report.warnings)
-
-    @pytest.mark.parametrize("slug", ["brand", "review", "api", "static", "admin", "healthz"])
-    def test_a_slug_that_would_shadow_a_route_is_skipped_with_a_warning(self, slug):
-        report = run(standard_source(pages=[page_post(slug=slug)]))
-
-        assert Page.objects.count() == 0
-        assert any("collides" in w for w in report.warnings)
-
-    def test_rerun_changes_nothing_and_edits_are_picked_up(self):
-        run(standard_source(pages=[page_post()]))
-
-        again = run(standard_source(pages=[page_post()]))
-        edited = run(standard_source(pages=[page_post(title="About us")]))
-
-        assert (again.counts["pages"].created, again.counts["pages"].unchanged) == (0, 1)
-        assert edited.counts["pages"].updated == 1
-        assert Page.objects.get().title == "About us"
-
-    def test_prune_removes_pages_gone_from_wordpress_but_keeps_native_ones(self):
-        run(
-            standard_source(
-                pages=[page_post(), page_post(wp_id=6, slug="contact", title="Contact")]
-            )
-        )
-        native = Page.objects.create(slug="made-here", title="Made here")
-
-        report = run(standard_source(pages=[page_post()]), prune=True)
-
-        assert sorted(Page.objects.values_list("slug", flat=True)) == ["about", "made-here"]
-        assert report.counts["pages"].pruned == 1
-        assert Page.objects.filter(pk=native.pk).exists()
