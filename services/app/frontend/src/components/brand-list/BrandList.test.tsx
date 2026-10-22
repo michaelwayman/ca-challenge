@@ -29,7 +29,7 @@ const renderList = (industries: Industry[] = INDUSTRIES) =>
 
 type User = ReturnType<typeof userEvent.setup>;
 const industryButton = () => screen.getByRole('button', { name: /^Industry/ });
-const sortButton = () => screen.getByRole('button', { name: /^Sort by/ });
+const sortSelect = () => screen.getByRole('combobox', { name: 'Sort by' });
 const checkbox = (name: string) => screen.getByRole('checkbox', { name });
 
 async function openIndustries(user: User) {
@@ -144,7 +144,7 @@ describe('URL as the source of truth', () => {
     await openIndustries(user);
     expect(checkbox('Telecom')).toBeChecked();
     expect(checkbox('Finance')).not.toBeChecked();
-    expect(sortButton()).toHaveTextContent('Most reviews');
+    expect(sortSelect()).toHaveValue('-review_count');
   });
 
   it('writes a filter change to the URL, resets the page and refetches', async () => {
@@ -161,10 +161,8 @@ describe('URL as the source of truth', () => {
     await waitFor(() => expect(lastUrl()).toBe('/api/brands/?industry=finance&page_size=12'));
   });
 
-  describe('sort options', () => {
-    const option = (name: string) => screen.getByRole('option', { name });
-
-    async function openSort() {
+  describe('sort order', () => {
+    async function renderSorted() {
       const user = userEvent.setup();
       respondWith(makePage([makeBrand('acme')]), makePage([makeBrand('acme')]));
       renderList();
@@ -172,137 +170,27 @@ describe('URL as the source of truth', () => {
       return user;
     }
 
-    it('opens a listbox with the current order selected', async () => {
-      const user = await openSort();
+    it('is a labelled native select showing the current order', async () => {
+      await renderSorted();
 
-      expect(sortButton()).toHaveAccessibleName('Sort by Name (A–Z)');
-      await user.click(sortButton());
-
-      const list = screen.getByRole('listbox', { name: 'Sort by' });
-      expect(within(list).getAllByRole('option')).toHaveLength(5);
-      expect(option('Name (A–Z)')).toHaveAttribute('aria-selected', 'true');
+      expect(sortSelect()).toHaveValue('name');
+      expect(
+        within(sortSelect())
+          .getAllByRole('option')
+          .map((o) => o.textContent),
+      ).toEqual(['Name (A–Z)', 'Highest rated', 'Lowest rated', 'Most reviews', 'Fewest reviews']);
     });
 
-    it('is walked with Tab and Shift+Tab, without choosing anything', async () => {
-      const user = await openSort();
-      sortButton().focus();
+    it('applies a choice to the URL and refetches', async () => {
+      const user = await renderSorted();
 
-      await user.keyboard('{Enter}');
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
-      await user.tab();
-      expect(option('Name (A–Z)')).toHaveFocus();
-      await user.tab();
-      expect(option('Highest rated')).toHaveFocus();
-      await user.tab();
-      expect(option('Lowest rated')).toHaveFocus();
-      await user.tab({ shift: true });
-      expect(option('Highest rated')).toHaveFocus();
-
-      expect(window.location.search).toBe('');
-      expect(option('Name (A–Z)')).toHaveAttribute('aria-selected', 'true');
-    });
-
-    it('closes when you tab past the last option', async () => {
-      const user = await openSort();
-      await user.click(sortButton());
-      await user.tab();
-
-      await user.keyboard('{End}');
-      expect(option('Fewest reviews')).toHaveFocus();
-      await user.tab();
-
-      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
-      expect(window.location.search).toBe('');
-    });
-
-    it('moves through the options with the arrows too, without choosing', async () => {
-      const user = await openSort();
-      await user.click(sortButton());
-      await user.tab();
-
-      await user.keyboard('{ArrowDown}{ArrowDown}');
-
-      expect(option('Lowest rated')).toHaveFocus();
-      expect(window.location.search).toBe('');
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
-
-      await user.keyboard('{ArrowUp}');
-      expect(option('Highest rated')).toHaveFocus();
-    });
-
-    it('stops at the first and last option, and Home and End jump there', async () => {
-      const user = await openSort();
-      await user.click(sortButton());
-      await user.tab();
-
-      await user.keyboard('{ArrowUp}');
-      expect(option('Name (A–Z)')).toHaveFocus();
-      await user.keyboard('{End}');
-      expect(option('Fewest reviews')).toHaveFocus();
-      await user.keyboard('{ArrowDown}');
-      expect(option('Fewest reviews')).toHaveFocus();
-      await user.keyboard('{Home}');
-      expect(option('Name (A–Z)')).toHaveFocus();
-    });
-
-    it('chooses with Enter, applies it and returns focus to the button', async () => {
-      const user = await openSort();
-      await user.click(sortButton());
-      await user.tab();
-
-      await user.keyboard('{Tab}{Enter}');
+      await user.selectOptions(sortSelect(), 'Highest rated');
 
       expect(window.location.search).toBe('?ordering=-average_rating');
-      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
-      expect(sortButton()).toHaveFocus();
       await waitFor(() =>
         expect(lastUrl()).toBe('/api/brands/?ordering=-average_rating&page_size=12'),
       );
-    });
-
-    it('chooses with Space too', async () => {
-      const user = await openSort();
-      await user.click(sortButton());
-
-      await user.tab();
-      await user.keyboard('{End} ');
-
-      expect(window.location.search).toBe('?ordering=review_count');
-    });
-
-    it('jumps to an option by its first letter, cycling on repeats', async () => {
-      const user = await openSort();
-      await user.click(sortButton());
-      await user.tab();
-
-      await user.keyboard('l');
-      expect(option('Lowest rated')).toHaveFocus();
-      await user.keyboard('m');
-      expect(option('Most reviews')).toHaveFocus();
-      await user.keyboard('n');
-      expect(option('Name (A–Z)')).toHaveFocus();
-      expect(window.location.search).toBe('');
-    });
-
-    it('closes on Escape without choosing and returns focus to the button', async () => {
-      const user = await openSort();
-      await user.click(sortButton());
-      await user.tab();
-      await user.keyboard('{Tab}{Escape}');
-
-      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
-      expect(sortButton()).toHaveFocus();
-      expect(window.location.search).toBe('');
-    });
-
-    it('can be chosen with the mouse', async () => {
-      const user = await openSort();
-
-      await user.click(sortButton());
-      await user.click(option('Highest rated'));
-
-      expect(window.location.search).toBe('?ordering=-average_rating');
-      expect(sortButton()).toHaveFocus();
+      expect(sortSelect()).toHaveValue('-average_rating');
     });
   });
 
@@ -589,7 +477,7 @@ describe('industry dropdown', () => {
     expect(screen.queryByRole('group', { name: 'Industry' })).not.toBeInTheDocument();
 
     await openIndustries(user);
-    await user.click(sortButton()); // focus leaves
+    await user.click(sortSelect()); // focus leaves
     expect(screen.queryByRole('group', { name: 'Industry' })).not.toBeInTheDocument();
   });
 
@@ -646,7 +534,7 @@ describe('keyboard and accessibility', () => {
     expect(industryButton()).toHaveFocus();
 
     await user.tab();
-    expect(sortButton()).toHaveFocus();
+    expect(sortSelect()).toHaveFocus();
     await user.tab();
     expect(screen.getByRole('button', { name: 'Remove Finance filter' })).toHaveFocus();
     await user.keyboard('{Enter}');

@@ -1,0 +1,72 @@
+@use '../abstracts/mixins' as m;
+@use '../abstracts/tokens' as t;
+
+// A labelled native <select> (the sort control). The select keeps its own keyboard, screen
+// reader and touch behaviour; only its box is restyled to match .dropdown__trigger. The icon
+// and chevron sit on top of it and let clicks through.
+
+.select {
+  display: inline-flex;
+  align-items: center;
+  gap: t.space(2);
+
+  @include m.below('sm') {
+    flex: 1;
+  }
+}
+
+.select__label {
+  color: t.color('muted');
+  font-size: t.text-size('sm');
+  white-space: nowrap;
+
+  // A phone has no room for it beside both controls; it stays the select's accessible name.
+  @include m.below('sm') {
+    @include m.visually-hidden;
+  }
+}
+
+.select__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  @include m.below('sm') {
+    flex: 1;
+  }
+}
+
+.select__control {
+  width: 100%;
+  min-height: t.size('control');
+  padding: 0 calc(#{t.space(4)} + 1.5em) 0 calc(#{t.space(4)} + 1.5em);
+  border: 1px solid t.color('border');
+  border-radius: t.radius('pill');
+  background: t.color('surface');
+  color: t.color('text');
+  font: inherit;
+  font-size: t.text-size('sm');
+  cursor: pointer;
+  appearance: none;
+
+  @include m.focus-ring;
+
+  &:hover {
+    border-color: t.color('muted');
+  }
+}
+
+.select__icon,
+.select__chevron {
+  position: absolute;
+  pointer-events: none;
+}
+
+.select__icon {
+  left: t.space(4);
+}
+
+.select__chevron {
+  right: t.space(4);
+  color: t.color('muted');
+}

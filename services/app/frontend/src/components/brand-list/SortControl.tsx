@@ -1,6 +1,7 @@
+import { useId } from 'react';
+
 import { type Ordering, ORDERINGS } from '../../urlState';
-import { SortIcon } from '../ui/icons';
-import { Select } from '../ui/Select';
+import { ChevronDownIcon, SortIcon } from '../ui/icons';
 
 const LABELS: Record<Ordering, string> = {
   name: 'Name (A–Z)',
@@ -10,25 +11,40 @@ const LABELS: Record<Ordering, string> = {
   review_count: 'Fewest reviews',
 };
 
-const OPTIONS = ORDERINGS.map((value) => ({ value, label: LABELS[value] }));
+const isOrdering = (value: string): value is Ordering => ORDERINGS.includes(value as Ordering);
 
 interface SortControlProps {
   value: Ordering;
   onChange: (ordering: Ordering) => void;
 }
 
-/** Choose the order the brands are listed in. */
+/** Choose the order the brands are listed in. A native select: the browser and the platform
+ *  supply the keyboard, screen reader and touch behaviour, and a phone shows its own picker. */
 export function SortControl({ value, onChange }: SortControlProps) {
+  const id = useId();
   return (
-    <Select
-      label="Sort by"
-      icon={<SortIcon />}
-      value={value}
-      options={OPTIONS}
-      onChange={onChange}
-      align="end"
-      compact
-      sheet
-    />
+    <div className="select">
+      <label className="select__label" htmlFor={id}>
+        Sort by
+      </label>
+      <div className="select__field">
+        <SortIcon className="select__icon" />
+        <select
+          id={id}
+          className="select__control"
+          value={value}
+          onChange={(event) => {
+            if (isOrdering(event.target.value)) onChange(event.target.value);
+          }}
+        >
+          {ORDERINGS.map((ordering) => (
+            <option key={ordering} value={ordering}>
+              {LABELS[ordering]}
+            </option>
+          ))}
+        </select>
+        <ChevronDownIcon className="select__chevron" />
+      </div>
+    </div>
   );
 }

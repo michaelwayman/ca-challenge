@@ -21,8 +21,8 @@ interface DropdownProps extends DropdownLayoutProps {
   badge?: ReactNode;
   /** Highlights the button: something is chosen. */
   active?: boolean;
-  /** Names the menu as a group, for menus that are not a listbox themselves. */
-  menuLabel?: string;
+  /** Names the menu, which is exposed as a group of controls. */
+  menuLabel: string;
   /** Owned by the parent when it needs to return focus to the button. */
   triggerRef?: RefObject<HTMLButtonElement | null>;
   /** The menu's contents. `close` shuts the menu and puts focus back on the button. */
@@ -31,7 +31,7 @@ interface DropdownProps extends DropdownLayoutProps {
 
 /** A button that opens a floating menu. It owns opening and closing (a click or focus outside
  *  closes it, Escape closes it and returns focus to the button); what is inside the menu, and
- *  what choosing does, is up to the caller. See Select and MultiSelect. */
+ *  what choosing does, is up to the caller. See MultiSelect. */
 export function Dropdown({
   icon,
   label,
@@ -65,7 +65,6 @@ export function Dropdown({
         type="button"
         ref={buttonRef}
         className={`dropdown__trigger${active ? ' dropdown__trigger--active' : ''}`}
-        aria-haspopup={menuLabel ? undefined : 'listbox'}
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         onClick={() => setOpen(!open)}
@@ -81,12 +80,7 @@ export function Dropdown({
         <ChevronDownIcon className="dropdown__chevron" />
       </button>
       {open && (
-        <div
-          className={menuClass}
-          id={menuId}
-          role={menuLabel ? 'group' : undefined}
-          aria-label={menuLabel}
-        >
+        <div className={menuClass} id={menuId} role="group" aria-label={menuLabel}>
           {children({ close })}
         </div>
       )}

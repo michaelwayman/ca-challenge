@@ -2,7 +2,7 @@
 @use '../abstracts/tokens' as t;
 
 // A button that opens a floating menu (components/ui/Dropdown). The menu holds rows
-// (.dropdown__option) or anything else; Select and MultiSelect are built on it.
+// (.dropdown__option) or anything else; MultiSelect is built on it.
 
 // The wrapper: the menu is positioned against it.
 .dropdown {
@@ -138,12 +138,6 @@
     outline: 2px solid t.color('primary');
     outline-offset: -2px;
   }
-
-  @include m.focus-ring(-2px);
-}
-
-.dropdown__option--selected {
-  font-weight: 600;
 }
 
 // A number at the end of a row (how many brands an industry has).
