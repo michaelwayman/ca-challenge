@@ -1,0 +1,25 @@
+[project]
+name = "reviews-app"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "ca-authlib[drf]>=0.1,<0.2",
+    "django>=5.2,<5.3",
+    "djangorestframework>=3.16,<3.17",
+    "httpx>=0.27",
+    "nh3>=0.2",
+    "psycopg[binary]>=3.2,<4",
+    "pymysql>=1.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+ca-authlib = { workspace = true }
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = ["integration: needs the wp-db container (make wp-source)"]
