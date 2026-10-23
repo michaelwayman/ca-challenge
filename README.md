@@ -2,7 +2,9 @@
 
 A Django replacement for the WordPress consumer-reviews site: server-rendered pages at the same URLs, a
 brand-listing API, a React `<BrandList />`, an SCSS source tree, a separate auth service and a small shared
-library. Every decision, with its alternatives, is logged in [DECISIONS.md](DECISIONS.md).
+library. Every decision, with its alternatives, is logged in [DECISIONS.md](DECISIONS.md). Where I kept or
+overrode the AI's proposals, and what changed after a practice panel review, is summarised in
+[AI_WORKFLOW.md](AI_WORKFLOW.md). [AGENTS.md](AGENTS.md) is a draft brief for an AI tool working in this repo.
 
 | Path | What |
 |---|---|
@@ -28,9 +30,46 @@ make up      # builds, starts everything, then runs the migration (see below)
 <http://localhost:5173>, proxying `/api` to the app. `make assets` rebuilds the bundle and CSS into
 `services/app/static/`, which overrides the image's copy.
 
+**SCSS.** The source is `services/app/frontend/scss/` (entry `main.scss`). Compile it with
+`cd services/app/frontend && pnpm build:css` (that is `sass scss/main.scss ../static/css/site.css
+--style=compressed`), or `make css` / `make css-watch` from the root; the output is
+`services/app/static/css/site.css`, which Django serves. `pnpm check:parity` compiles it and checks every rule in
+`reference/theme.css` has a counterpart and every class used in the templates and components is defined.
+
 **Services on the host** (needs [uv](https://docs.astral.sh/uv/)): `docker compose up -d db-app db-auth`, run
 `make assets`, then `uv run python manage.py migrate && uv run python manage.py runserver 8000` in
 `services/app` (and `8001` in `services/auth`). `make lint` and `make test` run everything.
+
+## The brand API
+
+`GET /api/brands/` is public and paginated.
+
+| Param | Values | Notes |
+|---|---|---|
+| `industry` | an industry slug, repeatable | OR across values. An unknown slug gives an empty page, not an error, so a stale bookmark degrades gracefully. |
+| `ordering` | `name` (default), `average_rating`, `review_count`; prefix `-` for descending | Unreviewed brands sort last either way; `name` then id break ties, so pages never repeat or drop a row. Anything else is a 400 listing the allowed values. |
+| `page`, `page_size` | integers; `page_size` defaults to 12, capped at 50 | A page past the end is a 404. |
+
+The response is DRF's page-number shape, `{count, next, previous, results}`. Each row is:
+
+```json
+{"name": "Acme Insurance Co.", "slug": "acme-insurance", "url": "/brand/acme-insurance/",
+ "industries": [{"name": "Insurance", "slug": "insurance"}],
+ "average_rating": 3.9, "review_count": 12, "excerpt": "Acme Insurance is a long-running…",
+ "top_review": {"slug": "…", "title": "…", "rating": 5, "snippet": "…", "reviewer": "Sarah K.", "url": "/review/…/"}}
+```
+
+- `average_rating` is derived from the reviews (one decimal; `null` with no reviews). `excerpt` and `snippet` are
+  plain text: render them as text, never as HTML.
+- **"Top review" is the brand's highest-rated review, then the most recent, then the highest id.** Known bias:
+  it skews positive, and since all seeded reviews share one date, the id decides among equal ratings.
+- `industries` is a list because the model is many-to-many, like the WordPress taxonomy.
+
+`GET /api/brands/<slug>/` returns the same row plus `description` (sanitized HTML). It never looks at the
+`Authorization` header, so it cannot fail because of a token or the auth service. `PATCH /api/brands/<slug>/`
+edits `description` only, for the `editor` role: 401 without a valid token, 403 for a reader, 400 for any other
+field or a body with no text left once unsafe markup is removed, 415 for anything but JSON, and 503 if the auth
+service cannot be asked for the caller's current roles. `PUT` and `DELETE` are 405.
 
 ## Get a token and call the protected endpoint
 
@@ -99,7 +138,13 @@ second run reports `unchanged` for everything. The code lives in each service's 
 - **One `description` per brand** (WordPress has no excerpt). It is sanitized on every save and rendered as HTML
   only on the brand page; cards show an escaped plain-text excerpt.
 - **The main app verifies tokens locally**, so an auth outage never takes the site down; the one write endpoint
-  also asks auth for the user's current roles and fails closed (503).
+  also asks auth for the user's current roles and fails closed (503). The main app has no admin, no sessions and
+  no user table of its own: it stores no passwords and no roles.
+
+**Deliberately not ported:** the WordPress admin (out of scope; the auth service's own admin is where roles are
+granted), the `/review/` and `/industry/<slug>/` archives, and static pages such as `/about/`. The main app's
+admin, the `/review/` archive and static pages were built after the original scope and removed after a practice
+panel review; see [AI_WORKFLOW.md](AI_WORKFLOW.md).
 
 ## With more time
 
@@ -113,4 +158,5 @@ Monorepo with one uv workspace and a Postgres per service, Django 5.2 with DRF, 
 Ed25519 token signing with 10-minute and 7-day lifetimes, MariaDB as the migration source, and skeleton loading
 states in the React list: boring, well known and easy to review. Where I chose against the proposal: industries
 are many-to-many (not a foreign key), the list uses TanStack Query (not a hand-written hook), and breaking token
-changes use a version claim (not expand/contract).
+changes use a version claim (not expand/contract). The full list, and the changes made after a practice panel
+review, are in [AI_WORKFLOW.md](AI_WORKFLOW.md).

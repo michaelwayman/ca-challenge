@@ -257,6 +257,8 @@ Asked for after the original scope: the "Reviews" and "About" pages WordPress ha
 
 ## AI defaults I accepted
 
+(Summarised, with the overrides and the changes from the practice panel review, in [AI_WORKFLOW.md](AI_WORKFLOW.md).)
+
 Fill this in as the work proceeds. The README requires a short list of places
 where I kept the AI's choice over my own preference, and why.
 
