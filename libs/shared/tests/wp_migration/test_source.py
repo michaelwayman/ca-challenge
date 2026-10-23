@@ -71,6 +71,8 @@ def test_reads_the_seeded_wordpress_site():
     assert len(source.reviews()) == 60
     assert len(users) == 9
     assert users["admin"].roles == ("administrator",)
+    assert users["admin"].password_hash.startswith("$wp$2y$")
+    assert "password_hash" not in repr(users["admin"])
     assert (users["sarah_k"].display_name, users["sarah_k"].email) == (
         "Sarah K.",
         "sarah@example.com",

@@ -94,14 +94,12 @@ trap clean_up EXIT
 
 # --- the story ---------------------------------------------------------------
 
-heading "Set up: import the WordPress users and give two of them dev passwords"
+heading "Set up: import the WordPress users (their WordPress passwords carry over)"
 auth_manage import_wordpress_users
-auth_manage set_dev_password admin admin-pass
-auth_manage set_dev_password sarah_k reader-pass
 
-heading "1. Log in"
-EDITOR_TOKEN=$(log_in admin admin-pass)
-READER_TOKEN=$(log_in sarah_k reader-pass)
+heading "1. Log in with WordPress passwords (admin/admin, sarah_k/changeme)"
+EDITOR_TOKEN=$(log_in admin admin)
+READER_TOKEN=$(log_in sarah_k changeme)
 echo "  editor token: ${EDITOR_TOKEN:0:40}..."
 wrong=$(http_status -X POST "$AUTH/api/auth/v1/token/" \
   -H 'Content-Type: application/json' -d '{"username": "admin", "password": "wrong"}')

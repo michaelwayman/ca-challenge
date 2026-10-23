@@ -38,6 +38,8 @@ class WPUser:
     email: str
     display_name: str
     roles: tuple[str, ...] = ()  # WordPress roles, e.g. ("administrator",)
+    # wp_users.user_pass as WordPress stored it, e.g. "$wp$2y$10$...". Kept out of repr().
+    password_hash: str = field(default="", repr=False)
 
 
 @dataclass(frozen=True)
@@ -131,7 +133,8 @@ class MariaDBSource:
 
     def users(self) -> list[WPUser]:
         rows = self._query(
-            f"SELECT ID, user_login, user_email, display_name FROM {self._table('users')} "  # noqa: S608
+            "SELECT ID, user_login, user_email, display_name, user_pass "  # noqa: S608
+            f"FROM {self._table('users')} "
             "ORDER BY ID"
         )
         capabilities = {
@@ -149,6 +152,7 @@ class MariaDBSource:
                 email=r["user_email"],
                 display_name=r["display_name"],
                 roles=parse_capabilities(capabilities.get(r["ID"], "")),
+                password_hash=r["user_pass"] or "",
             )
             for r in rows
         ]

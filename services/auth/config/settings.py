@@ -77,6 +77,17 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [],
 }
 
+# Django's defaults, plus one that verifies passwords migrated from WordPress. PBKDF2 stays
+# first, so a WordPress hash is replaced by a PBKDF2 one on the user's first successful login.
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.ScryptPasswordHasher",
+    "accounts.hashers.WordPressPasswordHasher",
+]
+
 ACCESS_TOKEN_TTL = 600  # seconds
 REFRESH_TOKEN_TTL = 7 * 24 * 3600
 

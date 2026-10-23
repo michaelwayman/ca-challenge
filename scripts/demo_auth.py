@@ -3,13 +3,10 @@
 
     python3 scripts/demo_auth.py [brand-slug]        (default: acme-insurance)
 
-Needs `make up` to be running, and development passwords for two users:
-
-    docker compose exec auth python manage.py set_dev_password admin admin-pass
-    docker compose exec auth python manage.py set_dev_password sarah_k reader-pass
-
-(scripts/demo-auth.sh does that for you, and also shows a demotion and the auth service
-going down, which need Docker.) The story here:
+Needs `make up` to be running. It logs in with the users' WordPress passwords, which the
+migration keeps (admin/admin, and changeme for the reviewers, as the challenge seeded them).
+scripts/demo-auth.sh also shows a demotion and the auth service going down, which need
+Docker. The story here:
 
     1. Log in as an editor (admin) and as a reader (sarah_k).
     2. Edit a brand's description with no token, as a reader, and as an editor.
@@ -63,7 +60,7 @@ def log_in(username, password):
         "POST", f"{AUTH}/api/auth/v1/token/", {"username": username, "password": password}
     )
     if status != 200:
-        sys.exit(f"Could not log in as {username} ({status}). Run set_dev_password (see the top).")
+        sys.exit(f"Could not log in as {username} ({status}). Was its WordPress password changed?")
     return tokens["access_token"], tokens["refresh_token"]
 
 
@@ -80,8 +77,8 @@ def current_description():
 
 def main():
     heading("1. Log in")
-    editor_token, editor_refresh = log_in("admin", "admin-pass")
-    reader_token, _ = log_in("sarah_k", "reader-pass")
+    editor_token, editor_refresh = log_in("admin", "admin")
+    reader_token, _ = log_in("sarah_k", "changeme")
     print(f"  editor token: {editor_token}")
     print(f"  editor refresh token: {editor_refresh}")
     status, _ = call(

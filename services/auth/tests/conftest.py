@@ -11,7 +11,10 @@ PASSWORD = "correct horse battery staple"  # noqa: S105
 @pytest.fixture(autouse=True)
 def fast_password_hashing(settings):
     """PBKDF2 is deliberately slow; tests do not need that (one test overrides this)."""
-    settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+    settings.PASSWORD_HASHERS = [
+        "django.contrib.auth.hashers.MD5PasswordHasher",
+        "accounts.hashers.WordPressPasswordHasher",
+    ]
 
 
 @pytest.fixture

@@ -41,7 +41,7 @@ class TestRoles:
 
 
 class TestImport:
-    def test_creates_users_with_the_deterministic_id_and_an_unusable_password(self):
+    def test_creates_users_with_the_deterministic_id_and_no_password_without_a_hash(self):
         report = import_users(FakeSource(ADMIN, SARAH))
 
         assert report.created == 2
@@ -141,5 +141,8 @@ def test_imports_the_real_wordpress_users():
     assert User.objects.get(username="admin").role_names() == ["editor", "reader"]
     assert User.objects.get(username="sarah_k").role_names() == ["reader"]
     assert User.objects.get(username="sarah_k").id == user_id_from_wp_id(2)
-    assert not any(u.has_usable_password() for u in User.objects.all())
+    # Every seeded user keeps their WordPress password (admin/admin, reviewers changeme).
+    assert User.objects.get(username="admin").check_password("admin")
+    assert User.objects.get(username="sarah_k").check_password("changeme")
+    assert not User.objects.get(username="sarah_k").check_password("wrong")
     assert import_users(MariaDBSource(**config)).created == 0
