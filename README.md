@@ -77,6 +77,9 @@ A second run reports everything `unchanged`.
 - **Tokens are verified locally**, so reads never depend on the auth service. The write endpoint also asks auth
   for current roles, so a demotion applies at once; if auth is down, the edit fails with a 503.
 - **WordPress passwords keep working**, and are re-hashed with Django's hasher on first login.
+- **Token changes are expand/contract:** add the new claim (auth writes old and new), move readers to it, then
+  drop the old one. Readers ignore claims they don't know, so neither service has to deploy first. I first built
+  a version claim instead, then went back to this as simpler and more standard.
 
 ### With more time
 
@@ -101,5 +104,3 @@ A second run reports everything `unchanged`.
 - **Brand descriptions:** it invented a second `short_description` field that WordPress never had. I kept one
   description, as WordPress does.
 - **Data fetching:** it proposed a hand-written hooks; I used TanStack Query for caching and cancellation.
-- **Breaking token changes:** it proposed expand-and-contract. I added a version claim, so each service can move
-  to a new token format on its own schedule.

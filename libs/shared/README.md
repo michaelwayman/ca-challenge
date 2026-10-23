@@ -10,9 +10,9 @@ if more than one service imports it.
 
 | Module | What it does |
 |---|---|
-| `auth.claims` | The token contract: `Claims`, `Role`, `issue_claims`, `encode_claims` / `decode_claims`, the `Introspection` shape. Tokens carry a version (`v`), so a new format can roll out without a simultaneous deploy |
-| `auth.verify` | `TokenVerifier` and `JWKSClient`: check a token's signature, issuer, audience, expiry and version against the auth service's public keys (cached; no network call per request) |
-| `auth.drf` | Django REST framework adapter (needs the `drf` extra): `JWTAuthentication` and `require_role(...)` |
+| `auth.claims` | The token contract: `Claims`, `Role`, `issue_claims`, `encode_claims` / `decode_claims`, the `Introspection` shape. Format changes are expand/contract; unknown claims are ignored |
+| `auth.verify` | `TokenVerifier` and `JWKSClient`: check a token's signature, issuer, audience and expiry against the auth service's public keys (cached; no network call per request) |
+| `auth.drf` | Django REST framework adapter (needs the `drf` extra): `JWTAuthentication` and the `RequireRole` permission |
 | `auth.errors` | The exceptions the other `auth` modules raise |
 | `auth.testing` | `TestKey`, for signing tokens in tests (not for production use) |
 | `wp_migration.source` | `MariaDBSource` (needs the `wp` extra): reads industries, brands, reviews and users (with their WordPress roles) from the WordPress database. Also the row dataclasses, the `WordPressSource` protocol and `connection_settings()` (`WP_DB_*`) |
@@ -34,17 +34,21 @@ CA_AUTH = {
     "JWKS_URL": "http://auth:8001/.well-known/jwks.json",
     "ISSUER": "brand-reviews-auth",
     "AUDIENCE": "brand-reviews-app",
-    "ACCEPTED_TOKEN_VERSIONS": [1],
 }
 
 # views.py
 from shared.auth.claims import Role
-from shared.auth.drf import JWTAuthentication, require_role
+from shared.auth.drf import JWTAuthentication, RequireRole
+
+
+class EditorOnly(RequireRole):
+    role = Role.EDITOR
+    fresh = True  # optional: ask the auth service for the user's current roles
 
 
 class EditBrand(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [require_role(Role.EDITOR)]  # fresh=True also asks auth for current roles
+    permission_classes = [EditorOnly]
 ```
 
 **Anywhere else:** verify a token by hand.
@@ -56,7 +60,6 @@ verifier = TokenVerifier(
     JWKSClient(http_fetch("http://auth:8001/.well-known/jwks.json")),
     issuer="brand-reviews-auth",
     audience="brand-reviews-app",
-    accepted_versions=[1],
 )
 claims = verifier.verify(token)  # raises TokenError if it is not valid
 claims.sub, claims.has_role("editor")
@@ -103,8 +106,8 @@ Add `ARGS=--build` to also build the wheel into `dist/`. If any check fails or y
 back.
 
 Follow semver. While the version is 0.x, a breaking change bumps the minor version, as 0.2.0 did when the modules
-moved into `auth` and `wp_migration`. That covers a breaking change to the Python API and dropping support for a
-token version.
+moved into `auth` and `wp_migration`. That covers a breaking change to the Python API. The token format itself changes
+by expand/contract (see `shared/auth/claims.py`), so it never needs a joint deploy.
 
 ## Use a tagged version from another project
 
