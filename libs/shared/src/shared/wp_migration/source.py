@@ -104,6 +104,7 @@ class MariaDBSource:
         return cls(**connection_settings())
 
     def _table(self, name: str) -> str:
+        """A table name with the site's prefix, e.g. `wp_posts`."""
         return f"`{self._prefix}{name}`"
 
     def _query(self, sql: str, params: tuple = ()) -> list[dict]:
@@ -112,14 +113,16 @@ class MariaDBSource:
             return list(cursor.fetchall())
 
     def industries(self) -> list[WPTerm]:
+        """The terms of the `industry` taxonomy."""
         rows = self._query(
             f"SELECT t.term_id, t.name, t.slug FROM {self._table('terms')} t "  # noqa: S608
             f"JOIN {self._table('term_taxonomy')} tt ON tt.term_id = t.term_id "
             "WHERE tt.taxonomy = 'industry' ORDER BY t.term_id"
         )
-        return [WPTerm(r["term_id"], r["name"], r["slug"]) for r in rows]
+        return [WPTerm(row["term_id"], row["name"], row["slug"]) for row in rows]
 
     def brand_industries(self) -> dict[int, list[int]]:
+        """Which industries each brand is in: brand id -> industry term ids."""
         rows = self._query(
             f"SELECT tr.object_id, tt.term_id FROM {self._table('term_relationships')} tr "  # noqa: S608
             f"JOIN {self._table('term_taxonomy')} tt "
@@ -127,19 +130,19 @@ class MariaDBSource:
             "WHERE tt.taxonomy = 'industry' ORDER BY tr.object_id, tt.term_id"
         )
         links: dict[int, list[int]] = {}
-        for r in rows:
-            links.setdefault(r["object_id"], []).append(r["term_id"])
+        for row in rows:
+            links.setdefault(row["object_id"], []).append(row["term_id"])
         return links
 
     def users(self) -> list[WPUser]:
+        """Every user, with their WordPress roles and password hash."""
         rows = self._query(
             "SELECT ID, user_login, user_email, display_name, user_pass "  # noqa: S608
-            f"FROM {self._table('users')} "
-            "ORDER BY ID"
+            f"FROM {self._table('users')} ORDER BY ID"
         )
         capabilities = {
-            r["user_id"]: r["meta_value"] or ""
-            for r in self._query(
+            row["user_id"]: row["meta_value"] or ""
+            for row in self._query(
                 f"SELECT user_id, meta_value FROM {self._table('usermeta')} "  # noqa: S608
                 "WHERE meta_key = %s",
                 (f"{self._prefix}capabilities",),
@@ -147,49 +150,57 @@ class MariaDBSource:
         }
         return [
             WPUser(
-                wp_id=r["ID"],
-                login=r["user_login"],
-                email=r["user_email"],
-                display_name=r["display_name"],
-                roles=parse_capabilities(capabilities.get(r["ID"], "")),
-                password_hash=r["user_pass"] or "",
+                wp_id=row["ID"],
+                login=row["user_login"],
+                email=row["user_email"],
+                display_name=row["display_name"],
+                roles=parse_capabilities(capabilities.get(row["ID"], "")),
+                password_hash=row["user_pass"] or "",
             )
-            for r in rows
+            for row in rows
         ]
 
     def brands(self) -> list[WPPost]:
+        """Published brands, with their ACF and Yoast fields."""
         return self._posts("brand", BRAND_META_KEYS)
 
     def reviews(self) -> list[WPPost]:
+        """Published reviews, with their ACF fields."""
         return self._posts("review", REVIEW_META_KEYS)
 
     def _posts(self, post_type: str, meta_keys: tuple[str, ...]) -> list[WPPost]:
-        posts = self._table("posts")
+        """Published posts of one type, each with the listed `wp_postmeta` values."""
+        meta = self._post_meta(post_type, meta_keys)
         rows = self._query(
             "SELECT ID, post_name, post_title, post_content, post_date_gmt, post_author "  # noqa: S608
-            f"FROM {posts} WHERE post_type = %s AND post_status = 'publish' ORDER BY ID",
+            f"FROM {self._table('posts')} "
+            "WHERE post_type = %s AND post_status = 'publish' ORDER BY ID",
             (post_type,),
         )
+        return [
+            WPPost(
+                wp_id=row["ID"],
+                slug=row["post_name"],
+                title=row["post_title"],
+                content=row["post_content"],
+                published_gmt=row["post_date_gmt"],
+                author_id=row["post_author"],
+                meta=meta.get(row["ID"], {}),
+            )
+            for row in rows
+        ]
+
+    def _post_meta(self, post_type: str, meta_keys: tuple[str, ...]) -> dict[int, dict[str, str]]:
+        """The listed meta values of every published post of one type: post id -> {key: value}."""
         placeholders = ", ".join(["%s"] * len(meta_keys))
-        meta: dict[int, dict[str, str]] = {}
-        meta_rows = self._query(
+        rows = self._query(
             "SELECT m.post_id, m.meta_key, m.meta_value "  # noqa: S608
-            f"FROM {self._table('postmeta')} m JOIN {posts} p ON p.ID = m.post_id "
+            f"FROM {self._table('postmeta')} m JOIN {self._table('posts')} p ON p.ID = m.post_id "
             "WHERE p.post_type = %s AND p.post_status = 'publish' "
             f"AND m.meta_key IN ({placeholders}) ORDER BY m.meta_id",
             (post_type, *meta_keys),
         )
-        for r in meta_rows:
-            meta.setdefault(r["post_id"], {})[r["meta_key"]] = r["meta_value"] or ""
-        return [
-            WPPost(
-                wp_id=r["ID"],
-                slug=r["post_name"],
-                title=r["post_title"],
-                content=r["post_content"],
-                published_gmt=r["post_date_gmt"],
-                author_id=r["post_author"],
-                meta=meta.get(r["ID"], {}),
-            )
-            for r in rows
-        ]
+        meta: dict[int, dict[str, str]] = {}
+        for row in rows:
+            meta.setdefault(row["post_id"], {})[row["meta_key"]] = row["meta_value"] or ""
+        return meta
