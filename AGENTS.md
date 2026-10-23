@@ -1,21 +1,17 @@
-# Brief for AI assistants working in this repo
+# Agent brief
 
-Read the @CHALLENGE.md file
-
+`CHALLENGE.md` is the source of truth for deliverables and scope. Read it before planning new work.
 
 ## Commands
 
-- `make up`: build and start everything, then run both migrations. `make reset` wipes the databases.
-- `make test`: the library, both services and the frontend. The service tests need
-- `make lint` before every commit: ruff, djlint, eslint, stylelint, tsc, prettier.
-- Run `uv run python manage.py makemigrations --check` in a service after changing its models.
+- `make up` builds, starts and imports; `make reset` wipes the databases.
+- `make test` runs every suite (the service tests need `make up`).
+- Lint and the migration check run automatically before `git commit` (`.claude/settings.json`).
 
 ## Rules
 
-- **Shared library.** Only code related to both services may go in it.
-- **Dependencies** Never introduce new dependencies or packages without asking.
-- **API.** Don't change parameter names or the row shape without updating the README's contract table.
-- **Frontend.** Prefer native elements to hand-built ARIA widgets.
-- **Scope.** Build what is asked. If something beyond the brief looks worth adding, propose it and wait.
-- **README.** Be clear and concise. Less is more.
-- **Commits** say why, not only what, and record any AI default kept or a proposal overridden.
+- `libs/shared` holds only code both services use.
+- Native HTML elements over hand-built ARIA widgets.
+- Build what is asked; propose anything extra and wait.
+- Keep the README short.
+- Commit messages say why, and note any AI default kept or proposal overridden.
