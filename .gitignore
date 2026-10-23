@@ -15,3 +15,5 @@ services/app/frontend/dist/
 # Compiled by the frontend build, not committed.
 services/app/static/
 dist/
+# Shared-library tags exported by `make up APP_SHARED=...` (scripts/export-shared.sh).
+.build/

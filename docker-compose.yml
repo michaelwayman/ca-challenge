@@ -38,6 +38,8 @@ services:
     build:
       context: .
       dockerfile: services/app/Dockerfile
+      args:
+        SHARED_SRC: ${APP_SHARED_SRC:-libs/shared}
     depends_on:
       db-app:
         condition: service_healthy
@@ -61,15 +63,20 @@ services:
       AUTH_JWKS_URL: http://auth:8001/.well-known/jwks.json
       AUTH_INTROSPECT_URL: http://auth:8001/api/auth/v1/introspect/
       AUTH_SERVICE_SECRET: ${AUTH_SERVICE_SECRET:-dev-service-secret}
+      SHARED_SOURCE: ${APP_SHARED_SRC:-libs/shared}  # shown by `make shared-version`
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./services/app:/workspace/services/app
-      - ./libs:/workspace/libs
+      # The working copy, mounted for live edits. A pinned tag (`make up APP_SHARED=<tag>`) is
+      # already copied into the image, so the Makefile parks this mount at an unused path.
+      - ./${APP_SHARED_SRC:-libs/shared}:${APP_SHARED_MOUNT:-/workspace/libs/shared}
 
   auth:
     build:
       context: .
       dockerfile: services/auth/Dockerfile
+      args:
+        SHARED_SRC: ${AUTH_SHARED_SRC:-libs/shared}
     depends_on:
       db-auth:
         condition: service_healthy
@@ -89,10 +96,13 @@ services:
       WP_DB_USER: ${WP_DB_USER:-wp}
       WP_DB_PASSWORD: ${WP_DB_PASSWORD:-wp}
       WP_TABLE_PREFIX: ${WP_TABLE_PREFIX:-wp_}
+      SHARED_SOURCE: ${AUTH_SHARED_SRC:-libs/shared}  # shown by `make shared-version`
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8001"
     volumes:
       - ./services/auth:/workspace/services/auth
-      - ./libs:/workspace/libs
+      # The working copy, mounted for live edits. A pinned tag (`make up AUTH_SHARED=<tag>`) is
+      # already copied into the image, so the Makefile parks this mount at an unused path.
+      - ./${AUTH_SHARED_SRC:-libs/shared}:${AUTH_SHARED_MOUNT:-/workspace/libs/shared}
 
   # Throwaway copy of the WordPress database, the migration's read-only source.
   wp-db:
