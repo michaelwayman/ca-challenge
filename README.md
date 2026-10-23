@@ -11,7 +11,7 @@ overrode the AI's proposals, and what changed after a practice panel review, is 
 | `services/app` | Main Django app, its own Postgres (:8000) |
 | `services/auth` | Auth service, its own Postgres (:8001) |
 | `services/app/frontend` | React `<BrandList />` and the SCSS source |
-| `libs/ca_authlib` | Python package both services share: token contract, verification, DRF adapter |
+| `libs/shared` | Python package both services share: `shared.auth` (token contract, verification, DRF adapter) and `shared.wp_migration` (reading the WordPress database) |
 
 ## Run it
 
@@ -93,11 +93,11 @@ curl -s -X PATCH localhost:8000/api/brands/acme-insurance/ \
 ## The shared library
 
 ```bash
-uv run --package ca-authlib --group test pytest libs/ca_authlib   # no service needed
+uv run --package shared --group test pytest libs/shared   # no service needed
 ```
 
-To release: bump `version` in `libs/ca_authlib/pyproject.toml`, tag `ca-authlib/vX.Y.Z`, and build with
-`uv build --package ca-authlib`. Each service depends on a range (`ca-authlib>=0.1,<0.2`), so it takes the new
+To release: bump `version` in `libs/shared/pyproject.toml`, tag `shared/vX.Y.Z`, and build with
+`uv build --package shared`. Each service depends on a range (`shared[...]>=0.2,<0.3`), so it takes the new
 version by widening that range and running `uv lock`, and can lag the other. Only the workspace install is wired
 here (there is no publishing pipeline), so in practice both services run the library's current source.
 
@@ -126,7 +126,10 @@ docker compose exec auth python manage.py import_wordpress_users
 
 It is safe to re-run: rows are matched on their WordPress id (`wp_id`) and updated in place, the whole run is one
 transaction, nothing is deleted unless you pass `--prune`, and a brand's description edited in Django is kept. A
-second run reports `unchanged` for everything. The code lives in each service's `management/commands/wp_migration/`.
+second run reports `unchanged` for everything. Reading WordPress is `shared.wp_migration.source`, which both services
+use; turning its rows into each service's models is in the commands themselves
+(`services/app/catalog/management/commands/import_wordpress.py` and
+`services/auth/accounts/management/commands/import_wordpress_users.py`).
 
 ## Modeling decisions
 

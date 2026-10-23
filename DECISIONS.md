@@ -9,12 +9,12 @@ as proposed; revisit if I have an opinion), or `open`.
 | # | Decision | Status | Why / alternatives |
 |---|---|---|---|
 | S1 | New repo (`brand-reviews`), separate from the WordPress challenge repo, which stays untouched as the source | decided (mine) | Keeps the new code free of WP history. The challenge asks for one deliverable repo, so this repo is the deliverable and carries its own copy of the dump (`data/wordpress-dump.sql`). |
-| S2 | Layout: `services/app` (with its `frontend/` inside it), `services/auth`, `libs/ca_authlib` in one uv workspace (the frontend was first at the repo root and was moved in; see "Frontend inside the app service") | ai-default | One lockfile and one compose file. The shared lib is its own package with its own `pyproject.toml` and tests; it could be split into its own repo later (see D8). |
+| S2 | Layout: `services/app` (with its `frontend/` inside it), `services/auth`, `libs/ca_authlib` (now `libs/shared`) in one uv workspace (the frontend was first at the repo root and was moved in; see "Frontend inside the app service") | ai-default | One lockfile and one compose file. The shared lib is its own package with its own `pyproject.toml` and tests; it could be split into its own repo later (see D8). |
 | S3 | Python tooling (templates are formatted with djlint, `profile = "django"`; blank lines around frontend functions are enforced by ESLint's `@stylistic/padding-line-between-statements`, since Prettier never adds blank lines): uv (workspace, `uv.lock`), ruff for lint and format, pytest + pytest-django, pre-commit, Python 3.13 | decided (mine: uv/ruff/pyproject); versions and rule set are ai-default | Ruff rules: E, W, F, I, UP, B, C4, SIM, DJ, S. No type checker yet (mypy/django-stubs or pyright is the open question). |
 | S4 | Frontend tooling: Vite + React 19 + TypeScript (strict), ESLint with jsx-a11y, Prettier, Vitest + Testing Library, Sass, pnpm | ai-default | TypeScript pinned to 6.x because typescript-eslint does not support 7.x yet. Revisit when it does. |
 | S5 | Two Postgres 16 containers, one per Django service, ports published on 127.0.0.1 (5433/5434) so `uv run` works on the host | ai-default | "Own database" is the service boundary. |
 | S6 | Django 5.2 LTS + DRF 3.16 | ai-default | Boring and well known. Django Ninja is nicer for typed schemas but adds a second paradigm to defend. |
-| S7 | Shared lib is a uv workspace member: editable install. Each service declares a compatible range (`ca-authlib>=0.1,<0.2`) | ai-default | Lets compose bind-mount `./libs` for live edits. The pin/upgrade story is D8c; only the workspace install is wired, there is no publishing pipeline. |
+| S7 | Shared lib is a uv workspace member: editable install. Each service declares a compatible range (`ca-authlib>=0.1,<0.2`; now `shared[...]>=0.2,<0.3`) | ai-default | Lets compose bind-mount `./libs` for live edits. The pin/upgrade story is D8c; only the workspace install is wired, there is no publishing pipeline. |
 | S8 | WordPress source = throwaway MariaDB (`wp-db`, compose profile `migration-source`) seeded from the committed dump | ai-default | Migration reads it directly, see D3. The original WP stack is not needed to run the migration. |
 | S9 | Frontend is a standalone Vite project with a dev harness; the built bundle is mounted into a Django template (see D5) | decided | Dev server proxies `/api` to the app. |
 
@@ -79,10 +79,11 @@ All eight are decided below. Observations from the seed data are recorded with t
 - **Defaults taken while building (implemented, never explicitly confirmed):** the introspection call is authenticated with a service secret from the environment (internal network only); imported WP users get unusable passwords, with a documented dev-only command to set one.
 
 **D8. Shared library** — decided (mine); D8a interpretation awaiting confirmation
+- *Later:* the package is now `shared`, with `auth` and `wp_migration` submodules; see "the shared library split" below. The module names here are the originals.
 - **Modules (each used by both services unless noted):** `claims` (Claims type, claim names, `Role`, `ISSUER`/`AUDIENCE`, per-version encode/decode, so issuer and verifier cannot drift); `verify` (JWT verification, JWKS cache via PyJWT's `PyJWKClient`, `iss`/`aud`/`exp`/`v` checks; main app today, pure Python, deps: `PyJWT[crypto]` only); `drf` (authentication class and `require_role` permission class; main app only, optional extra `ca-authlib[drf]` so auth doesn't install DRF); `ids` (see D8b). Out: login/issuing/signing keys/models/settings (auth only). Tests run without either Django project (plain pytest for the core; the DRF adapter uses a tiny `settings.configure()` fixture).
 - **D8a, introspection (interpretation, to confirm):** the introspection *client* stays in the main app and the lib's permission class takes an injectable hook, so the lib stays small. The *authority* over trust stays in auth: what is valid, who holds which role, revocation, and which token versions are live. The request/response schema is part of `claims`. Auth's HTTP API is versioned by path (`/api/auth/v1/...`), and a new version runs alongside the old one until its clients move. Local JWT verification cannot live in the auth service (D7: no per-request call), which is why the lib exists.
 - **D8b, `ids` (decided): one definition in the lib** (`user_id_from_wp_id()` plus the UUIDv5 namespace). It is not scheduled for deletion; its docstring says it exists for the WP migration and that a future maintainer may delete it once nothing depends on it. Cost: migration-origin code in a long-lived package.
-- **D8c, distribution (decided): workspace for dev, SemVer ranges + git tags.** The lib stays a uv workspace member (editable, so compose bind-mounts give live edits). Each service declares a compatible range (`ca-authlib>=0.1,<0.2`); releases are git tags (`ca-authlib/vX.Y.Z`) with a built wheel, so a service can lag a release. In this repo only the workspace is wired; the README documents the release flow and does not claim a publishing pipeline exists.
+- **D8c, distribution (decided): workspace for dev, SemVer ranges + git tags.** The lib stays a uv workspace member (editable, so compose bind-mounts give live edits). Each service declares a compatible range (`ca-authlib>=0.1,<0.2`; now `shared[...]>=0.2,<0.3`); releases are git tags (`ca-authlib/vX.Y.Z`) with a built wheel, so a service can lag a release. In this repo only the workspace is wired; the README documents the release flow and does not claim a publishing pipeline exists.
 - **D8d, breaking token changes (decided): versioned tokens, a `v` claim.** Tokens carry `v` (v1 from the start; a token with no `v` or an unknown `v` is rejected with 401). The lib's `claims` module holds an encoder and a decoder per version. Auth keeps a per-audience setting for which version to issue, so it supports several versions at once and each consumer moves on its own schedule; the verifier takes an `ACCEPTED_TOKEN_VERSIONS` setting. Rollout: (1) release lib N+1 with v1 and v2 parsers; (2) deploy the main app with both accepted; (3) flip the audience's issued version to v2 in auth (rollback is flipping it back); (4) later remove v1. Because access tokens live about 10 minutes and refresh issues new tokens at the current version, a retired version drains within one TTL. Cost: two live parsers during a rollout and a written retirement rule (drop a version when no audience issues it and one TTL has passed).
 
 ## Implementation notes: auth service, shared library and the protected endpoint
@@ -126,6 +127,26 @@ A review of the frontend (components, SCSS, and `reference/theme.css`) found gen
 - **Tests:** 94 (was 71). New unit tests for `Select` (with a non-brand option list), `MultiSelect`, `TagList`, `Notice`, `Pagination`, `useFocusAfterChange` and `resultsStatus`, to show the pieces work outside BrandList; the BrandList tests were kept and pass unchanged apart from two renamed hooks (`.dropdown__options`, `card-skeleton`).
 - **Not done:** `useListState` and `urlState` still know the brand list's fields (industries, ordering, page); a generic `useUrlState(parse, serialize)` is the next step if a second list appears. The server-rendered Django templates still repeat the card markup the React `BrandCard` produces (they share CSS, not code).
 - **Checked in a real browser:** the dropdown menus on a 375px phone (both span the row) and on desktop (the sort menu right-aligned under its button, 13rem wide). That caught one regression of mine, the compact width beating the phone rule in the cascade, which is fixed.
+
+## Implementation notes: the shared library split into `auth` and `wp_migration`
+
+Decided (mine), after the practice panel review. `ca_authlib` was renamed `shared` (0.2.0) and split in two:
+- **`shared.auth`**: `claims`, `verify`, `drf`, `errors` and `testing`, moved unchanged.
+- **`shared.wp_migration`**:
+  - `ids`, moved.
+  - `source.py`, the one WordPress reader, built from the app's `MariaDBSource`. Its `users()` now also returns
+    `login`, `email` and the WordPress roles (`parse_capabilities()`), replacing the auth service's separate
+    `MariaDBUserSource`, `connection_settings()` and prefix check.
+
+`pymysql` moved behind a `[wp]` extra: the main app installs `shared[drf,wp]`, the auth service `shared[wp]`.
+
+Each service's import logic moved into its management command:
+- `import_wordpress.py` holds the `Importer`.
+- `import_wordpress_users.py` holds `import_users()` and `roles_for()`.
+
+The `management/commands/wp_migration/` packages are gone. This supersedes the "Isolation" bullet below.
+
+Shared because both services read WordPress users and both use `ids`.
 
 ## Implementation notes: migration code isolated, MariaDB kept
 

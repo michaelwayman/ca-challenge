@@ -10,7 +10,8 @@ Read the challenge brief (`CHALLENGE.md` in the ConsumerAffairs challenge repo) 
   `/api/brands/` API. `frontend/` holds the React `<BrandList />` and the SCSS source.
 - `services/auth`: the auth service (`accounts`): users, roles, tokens, introspection, and the WordPress user
   import.
-- `libs/ca_authlib`: the shared library (token contract, verification, DRF adapter). Both services install it
+- `libs/shared`: the shared library. `shared.auth` holds the token contract, verification and the DRF adapter;
+  `shared.wp_migration` holds the WordPress database reader and the migrated-user ids. Both services install it
   from the uv workspace.
 
 ## Commands
@@ -31,7 +32,8 @@ Read the challenge brief (`CHALLENGE.md` in the ConsumerAffairs challenge repo) 
   module.
 - **HTML.** Stored HTML is sanitized in the model's `save()` (`catalog/sanitize.py`). Cards and API excerpts are
   plain text and must be rendered as text.
-- **Migration.** It must stay re-runnable: match on `wp_id`, use one transaction, change nothing on a second run,
+- **Migration.** Reading WordPress belongs in `shared.wp_migration`; writing models belongs in each service's
+  import command. It must stay re-runnable: match on `wp_id`, use one transaction, change nothing on a second run,
   and delete nothing without `--prune`.
 - **API.** Don't change parameter names or the row shape without updating the README's contract table.
 - **Frontend.** Prefer native elements to hand-built ARIA widgets. The URL is the state for filters, sort and
