@@ -98,10 +98,7 @@ export function BrandList({ industries, apiUrl = '/api/brands/', pageSize = 12 }
     );
   } else if (data) {
     body = (
-      <div
-        className={`brand-list__results${isPlaceholderData ? ' brand-list__results--stale' : ''}`}
-        aria-busy={isPlaceholderData}
-      >
+      <div className={`results${isPlaceholderData ? ' stale' : ''}`} aria-busy={isPlaceholderData}>
         <div className="grid">
           {data.results.map((brand) => (
             <BrandCard key={brand.slug} brand={brand} />
@@ -113,8 +110,8 @@ export function BrandList({ industries, apiUrl = '/api/brands/', pageSize = 12 }
 
   return (
     <div className="brand-list">
-      <div className="brand-list__toolbar">
-        <div className="brand-list__controls">
+      <div className="toolbar">
+        <div className="controls">
           <IndustryFilter
             industries={industries}
             selected={state.industries}
@@ -123,7 +120,7 @@ export function BrandList({ industries, apiUrl = '/api/brands/', pageSize = 12 }
           />
           <SortControl value={state.ordering} onChange={(ordering) => setState({ ordering })} />
         </div>
-        <p className="brand-list__status" role="status">
+        <p className="status" role="status">
           {status}
         </p>
       </div>
@@ -135,7 +132,6 @@ export function BrandList({ industries, apiUrl = '/api/brands/', pageSize = 12 }
           onRemove={removeIndustry}
           onClear={clearFilters}
           listRef={tagsRef}
-          className="brand-list__tags"
         />
       )}
       <h2 className="visually-hidden" tabIndex={-1} ref={headingRef}>

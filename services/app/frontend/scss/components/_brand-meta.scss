@@ -1,0 +1,25 @@
+@use '../abstracts/tokens' as t;
+
+// The facts under a brand's name (HQ, founded, website), as a <dl>.
+.brand-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: t.space(4);
+  margin: t.space(4) 0 0;
+  color: t.color('muted');
+  font-size: t.text-size('md');
+
+  div {
+    display: flex;
+    gap: t.space(1);
+  }
+
+  dt {
+    color: t.color('text');
+    font-weight: t.weight('bold');
+  }
+
+  dd {
+    margin: 0;
+  }
+}

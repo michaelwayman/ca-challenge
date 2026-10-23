@@ -18,34 +18,34 @@
   &:hover {
     background: t.color('primary-dark');
   }
-}
 
-.button--small {
-  min-height: t.size('control-sm');
-  padding: 0 t.space(4);
-}
-
-.button--ghost {
-  background: transparent;
-  color: t.color('primary');
-
-  &:hover {
-    background: t.color('badge-bg');
+  &.small {
+    min-height: t.size('control-sm');
+    padding: 0 t.space(4);
   }
-}
 
-// Reads as a link: for secondary actions such as Clear.
-.button--link {
-  min-height: t.size('control-sm');
-  padding: 0 t.space(2);
-  border: 0;
-  background: none;
-  color: t.color('primary');
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  &.ghost {
+    background: transparent;
+    color: t.color('primary');
 
-  &:hover {
+    &:hover {
+      background: t.color('badge-bg');
+    }
+  }
+
+  // Reads as a link: for secondary actions such as Clear.
+  &.link {
+    min-height: t.size('control-sm');
+    padding: 0 t.space(2);
+    border: 0;
     background: none;
-    color: t.color('primary-dark');
+    color: t.color('primary');
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover {
+      background: none;
+      color: t.color('primary-dark');
+    }
   }
 }

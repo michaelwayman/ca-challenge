@@ -1,12 +1,12 @@
 {% load catalog_extras %}
 <article class="card">
   {% if brand.industries.all %}
-    <ul class="card__badges">
+    <ul class="badges">
       {% for industry in brand.industries.all %}<li class="badge">{{ industry.name }}</li>{% endfor %}
     </ul>
   {% endif %}
-  <h3 class="card__title"><a class="card__link" href="{{ brand.get_absolute_url }}">{{ brand.name }}</a></h3>
-  <p class="card__rating">{% stars brand.average_rating show_value=True %} <span class="card__count">({{ brand.review_count }})</span></p>
-  {% if brand.headquarters %}<p class="card__meta">{{ brand.headquarters }}</p>{% endif %}
-  <p class="card__excerpt">{{ brand.description|excerpt }}</p>
+  <h3><a href="{{ brand.get_absolute_url }}">{{ brand.name }}</a></h3>
+  <p class="rating">{% stars brand.average_rating show_value=True %} <span class="count">({{ brand.review_count }})</span></p>
+  {% if brand.headquarters %}<p class="meta">{{ brand.headquarters }}</p>{% endif %}
+  <p class="excerpt">{{ brand.description|excerpt }}</p>
 </article>

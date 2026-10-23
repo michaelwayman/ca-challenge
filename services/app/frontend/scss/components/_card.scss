@@ -1,6 +1,7 @@
 @use '../abstracts/mixins' as m;
 @use '../abstracts/tokens' as t;
 
+// A brand or review in a grid. Reference: .card h3 a, .card .meta, .card .excerpt.
 .card {
   @include m.surface;
 
@@ -24,63 +25,63 @@
       transform: none;
     }
   }
-}
 
-.card__badges {
-  @include m.list-reset;
+  .badges {
+    @include m.list-reset;
 
-  display: flex;
-  flex-wrap: wrap;
-  gap: t.space(2);
-}
+    display: flex;
+    flex-wrap: wrap;
+    gap: t.space(2);
+  }
 
-.card__title {
-  margin: 0;
-  font-size: t.text-size('lg');
-  font-weight: t.weight('semibold');
-}
+  h3 {
+    margin: 0;
+    font-size: t.text-size('lg');
+    font-weight: t.weight('semibold');
 
-.card__link {
-  color: t.color('text');
-}
+    a {
+      color: t.color('text');
+    }
+  }
 
-.card__rating {
-  margin: 0;
-}
+  .rating {
+    margin: 0;
+  }
 
-.card__count {
-  margin-left: t.space(2);
-  color: t.color('muted');
-  font-size: t.text-size('sm');
-}
+  .count {
+    margin-left: t.space(2);
+    color: t.color('muted');
+    font-size: t.text-size('sm');
+  }
 
-.card__meta {
-  margin: 0;
-  color: t.color('muted');
-  font-size: t.text-size('sm');
-}
+  .meta {
+    margin: 0;
+    color: t.color('muted');
+    font-size: t.text-size('sm');
+  }
 
-.card__excerpt {
-  margin: 0;
-  color: t.color('text-soft');
-  font-size: t.text-size('sm');
-}
+  .excerpt {
+    margin: 0;
+    color: t.color('text-soft');
+    font-size: t.text-size('sm');
+  }
 
-// A review quoted inside a card (the brand cards' top review).
-.card__quote {
-  margin: 0;
-  padding-left: t.space(3);
-  border-left: 3px solid t.color('badge-border');
-}
+  // A review quoted inside a card (the brand cards' top review).
+  blockquote {
+    margin: 0;
+    padding-left: t.space(3);
+    border-left: 3px solid t.color('badge-border');
+  }
 
-.card__snippet {
-  margin: 0 0 t.space(2);
-  color: t.color('text-soft');
-  font-size: t.text-size('sm');
-  font-style: italic;
-}
+  .snippet {
+    margin: 0 0 t.space(2);
+    color: t.color('text-soft');
+    font-size: t.text-size('sm');
+    font-style: italic;
+  }
 
-.card__attribution {
-  color: t.color('muted');
-  font-size: t.text-size('xs');
+  .attribution {
+    color: t.color('muted');
+    font-size: t.text-size('xs');
+  }
 }

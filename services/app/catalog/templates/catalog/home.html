@@ -3,15 +3,15 @@
 {% block content %}
   <section class="hero">
     <div class="container">
-      <h1 class="hero__title">Honest reviews of consumer brands</h1>
-      <p class="hero__lede">Independent customer feedback on insurance, telecom, finance, home services, and retail companies.</p>
+      <h1>Honest reviews of consumer brands</h1>
+      <p>Independent customer feedback on insurance, telecom, finance, home services, and retail companies.</p>
     </div>
   </section>
   <section class="section" aria-labelledby="featured-heading">
     <div class="container">
-      <div class="section__header">
-        <h2 class="section__title" id="featured-heading">Featured Brands</h2>
-        <a class="section__link" href="{% url 'brand-list' %}">All brands →</a>
+      <div class="section-header">
+        <h2 id="featured-heading">Featured Brands</h2>
+        <a href="{% url 'brand-list' %}">All brands →</a>
       </div>
       <div class="grid">
         {% for brand in featured_brands %}
@@ -20,10 +20,10 @@
       </div>
     </div>
   </section>
-  <section class="section section--alt" aria-labelledby="recent-heading">
+  <section class="section alt" aria-labelledby="recent-heading">
     <div class="container">
-      <div class="section__header">
-        <h2 class="section__title" id="recent-heading">Recent Reviews</h2>
+      <div class="section-header">
+        <h2 id="recent-heading">Recent Reviews</h2>
       </div>
       <div class="grid">
         {% for review in recent_reviews %}{% include "catalog/_review_card.html" %}{% empty %}<p>No reviews yet.</p>{% endfor %}

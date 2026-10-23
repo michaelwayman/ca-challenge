@@ -23,15 +23,12 @@ interface SortControlProps {
 export function SortControl({ value, onChange }: SortControlProps) {
   const id = useId();
   return (
-    <div className="select">
-      <label className="select__label" htmlFor={id}>
-        Sort by
-      </label>
-      <div className="select__field">
-        <SortIcon className="select__icon" />
+    <div className="sort-select">
+      <label htmlFor={id}>Sort by</label>
+      <div className="field">
+        <SortIcon className="icon" />
         <select
           id={id}
-          className="select__control"
           value={value}
           onChange={(event) => {
             if (isOrdering(event.target.value)) onChange(event.target.value);
@@ -43,7 +40,7 @@ export function SortControl({ value, onChange }: SortControlProps) {
             </option>
           ))}
         </select>
-        <ChevronDownIcon className="select__chevron" />
+        <ChevronDownIcon className="chevron" />
       </div>
     </div>
   );

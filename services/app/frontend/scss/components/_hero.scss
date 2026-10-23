@@ -1,79 +1,92 @@
 @use '../abstracts/mixins' as m;
 @use '../abstracts/tokens' as t;
 
-// The title size is a custom property so a variant or breakpoint can change it
-// without a descendant selector.
-.hero {
-  --hero-title-size: #{t.text-size('5xl')};
+// Three heroes, as in the reference: the gradient .hero (home and the brand list), and the
+// plain white .brand-hero and .review-hero on a single brand or review.
 
+@mixin -title($size) {
+  margin: 0 0 t.space(3);
+  font-size: t.text-size($size);
+  font-weight: t.weight('bold');
+  letter-spacing: -0.02em;
+}
+
+@mixin -plain {
+  padding: t.space(10) 0;
+  border-bottom: 1px solid t.color('border');
+  background: t.color('surface');
+  color: t.color('text');
+
+  h1 {
+    @include -title('4xl');
+  }
+
+  .rating {
+    margin: 0;
+  }
+}
+
+.hero {
   padding: t.space(16) 0 t.space(14);
   background: linear-gradient(135deg, t.color('primary') 0%, t.color('primary-deep') 100%);
   color: t.color('on-primary');
 
   @include m.below('sm') {
-    --hero-title-size: #{t.text-size('3xl')};
-
     padding: t.space(10) 0;
+  }
+
+  // The brand list's hero: the same gradient with less padding (WordPress sets 48px inline).
+  &.compact {
+    padding: t.space(12) 0;
+
+    @include m.below('sm') {
+      padding: t.space(10) 0;
+    }
+  }
+
+  h1 {
+    @include -title('5xl');
+
+    @include m.below('sm') {
+      font-size: t.text-size('3xl');
+    }
+  }
+
+  p {
+    max-width: 40rem;
+    margin: 0;
+    font-size: t.text-size('lg');
+    opacity: 0.92;
   }
 }
 
-// Declared after .hero on purpose: it resets the size the breakpoint above sets.
-.hero--plain {
-  --hero-title-size: #{t.text-size('4xl')};
+.brand-hero {
+  @include -plain;
 
-  padding: t.space(10) 0;
-  border-bottom: 1px solid t.color('border');
-  background: t.color('surface');
-  color: t.color('text');
-}
+  .badges {
+    @include m.list-reset;
 
-// The archive pages' hero: the same gradient with less padding (WordPress sets 48px inline).
-// Declared after .hero so its padding wins, and with its own breakpoint for the same reason.
-.hero--compact {
-  padding: t.space(12) 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: t.space(2);
+    margin-bottom: t.space(3);
+  }
 
-  @include m.below('sm') {
-    padding: t.space(10) 0;
+  .count {
+    margin-left: t.space(2);
+    color: t.color('muted');
+    font-size: t.text-size('sm');
   }
 }
 
-.hero__title {
-  margin: 0 0 t.space(3);
-  font-size: var(--hero-title-size);
-  font-weight: t.weight('bold');
-  letter-spacing: -0.02em;
-}
+.review-hero {
+  @include -plain;
 
-.hero__lede {
-  max-width: 40rem;
-  margin: 0;
-  font-size: t.text-size('lg');
-  opacity: 0.92;
-}
-
-.hero__badges {
-  @include m.list-reset;
-
-  display: flex;
-  flex-wrap: wrap;
-  gap: t.space(2);
-  margin-bottom: t.space(3);
-}
-
-.hero__rating {
-  margin: 0;
-}
-
-.hero__count {
-  margin-left: t.space(2);
-  color: t.color('muted');
-  font-size: t.text-size('sm');
-}
-
-.hero__backlink {
-  margin: 0 0 t.space(2);
-  font-size: t.text-size('sm');
-  font-weight: t.weight('semibold');
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  .brand-link {
+    margin: 0 0 t.space(2);
+    font-size: t.text-size('sm');
+    font-weight: t.weight('semibold');
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
 }

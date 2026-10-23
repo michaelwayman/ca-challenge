@@ -1,11 +1,17 @@
 @use '../abstracts/mixins' as m;
 @use '../abstracts/tokens' as t;
 
+// A white panel for a block of content (a review's body, the 404 message).
 .surface {
   @include m.surface;
+
+  h1 {
+    margin-top: 0;
+    font-size: t.text-size('3xl');
+  }
 }
 
-.surface__title {
-  margin-top: 0;
-  font-size: t.text-size('3xl');
+// A brand page's description. Reference: .brand-body .content.
+.brand-body .content {
+  @include m.surface;
 }

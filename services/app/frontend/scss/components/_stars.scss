@@ -6,30 +6,32 @@
   gap: t.space(1);
   font-size: t.text-size('md');
   letter-spacing: 1px;
-}
 
-.stars__star {
-  line-height: 1;
-}
+  .star-full,
+  .star-empty {
+    line-height: 1;
+  }
 
-.stars__star--full {
-  color: t.color('star');
-}
+  .star-full {
+    color: t.color('star');
+  }
 
-.stars__star--empty {
-  color: t.color('star-empty');
-}
+  .star-empty {
+    color: t.color('star-empty');
+  }
 
-.stars__value {
-  margin-left: t.space(2);
-  color: t.color('text');
-  font-size: t.text-size('sm');
-  font-weight: t.weight('semibold');
-  letter-spacing: normal;
-}
+  .rating-value {
+    margin-left: t.space(2);
+    color: t.color('text');
+    font-size: t.text-size('sm');
+    font-weight: t.weight('semibold');
+    letter-spacing: normal;
+  }
 
-.stars--none {
-  color: t.color('muted');
-  font-size: t.text-size('sm');
-  letter-spacing: normal;
+  // No reviews yet: text instead of stars.
+  &.none {
+    color: t.color('muted');
+    font-size: t.text-size('sm');
+    letter-spacing: normal;
+  }
 }

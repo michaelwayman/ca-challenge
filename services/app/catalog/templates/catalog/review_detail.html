@@ -2,12 +2,12 @@
 {% load catalog_extras %}
 {% block title %}{{ review.title }} | {{ review.brand.name }}{% endblock %}
 {% block content %}
-  <section class="hero hero--plain">
+  <section class="review-hero">
     <div class="container">
-      <p class="hero__backlink"><a href="{{ review.brand.get_absolute_url }}">← {{ review.brand.name }}</a></p>
-      <h1 class="hero__title">{{ review.title }}</h1>
-      <p class="hero__rating">{% stars review.rating show_value=True %}</p>
-      <p class="review__byline">{% if review.reviewer %}{{ review.reviewer.display_name }}{% endif %}{% if review.reviewer_location %}, {{ review.reviewer_location }}{% endif %} · <time datetime="{{ review.published_at|date:'Y-m-d' }}">{{ review.published_at|date:"F j, Y" }}</time></p>
+      <p class="brand-link"><a href="{{ review.brand.get_absolute_url }}">← {{ review.brand.name }}</a></p>
+      <h1>{{ review.title }}</h1>
+      <p class="rating">{% stars review.rating show_value=True %}</p>
+      <p class="review-byline">{% if review.reviewer %}{{ review.reviewer.display_name }}{% endif %}{% if review.reviewer_location %}, {{ review.reviewer_location }}{% endif %} · <time datetime="{{ review.published_at|date:'Y-m-d' }}">{{ review.published_at|date:"F j, Y" }}</time></p>
     </div>
   </section>
   <section class="section">

@@ -3,56 +3,57 @@
 
 // <BrandList /> (src/components/brand-list). It only lays out the generic pieces (dropdown,
 // tags, notice, skeleton, card, pagination); nothing here is reusable on its own.
-
-// One row: the two controls on the left, the result count on the right. On a phone the
-// controls take a full row, split evenly, and the count drops to its own line below.
-.brand-list__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: t.space(3) t.space(4);
-  margin-bottom: t.space(4);
-}
-
-// Anchors the dropdown menus on a phone (see .dropdown--sheet).
-.brand-list__controls {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: t.space(2);
-
-  @include m.below('sm') {
-    flex: 1 1 100%;
+.brand-list {
+  // One row: the two controls on the left, the result count on the right. On a phone the
+  // controls take a full row, split evenly, and the count drops to its own line below.
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: t.space(3) t.space(4);
+    margin-bottom: t.space(4);
   }
-}
 
-// The chosen-industry tags sit just under the toolbar.
-.brand-list__tags {
-  margin: calc(-1 * #{t.space(1)}) 0 t.space(4);
-}
+  // Anchors the dropdown menus on a phone (see .dropdown.sheet).
+  .controls {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: t.space(2);
 
-// Reserve the line so results do not jump when the text changes.
-.brand-list__status {
-  min-height: 1.5em;
-  margin: 0 0 0 auto;
-  color: t.color('muted');
-  font-size: t.text-size('sm');
-
-  @include m.below('sm') {
-    flex: 1 1 100%;
-    margin: 0;
+    @include m.below('sm') {
+      flex: 1 1 100%;
+    }
   }
-}
 
-.brand-list__results {
-  transition: opacity t.duration('fast');
-
-  @include m.reduced-motion {
-    transition: none;
+  // The chosen-industry tags sit just under the toolbar.
+  .tags {
+    margin: calc(-1 * #{t.space(1)}) 0 t.space(4);
   }
-}
 
-// Previous results stay visible, dimmed, while the next ones load.
-.brand-list__results--stale {
-  opacity: 0.55;
+  // Reserve the line so results do not jump when the text changes.
+  .status {
+    min-height: 1.5em;
+    margin: 0 0 0 auto;
+    color: t.color('muted');
+    font-size: t.text-size('sm');
+
+    @include m.below('sm') {
+      flex: 1 1 100%;
+      margin: 0;
+    }
+  }
+
+  .results {
+    transition: opacity t.duration('fast');
+
+    @include m.reduced-motion {
+      transition: none;
+    }
+
+    // Previous results stay visible, dimmed, while the next ones load.
+    &.stale {
+      opacity: 0.55;
+    }
+  }
 }

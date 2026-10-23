@@ -50,21 +50,15 @@ export function Dropdown({
   const { open, setOpen, rootRef, close } = useDisclosure(buttonRef);
   const menuId = useId();
 
-  const rootClass = ['dropdown', sheet && 'dropdown--sheet', className].filter(Boolean).join(' ');
-  const menuClass = [
-    'dropdown__menu',
-    align === 'end' && 'dropdown__menu--end',
-    compact && 'dropdown__menu--compact',
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const rootClass = `dropdown${sheet ? ' sheet' : ''}${className ? ` ${className}` : ''}`;
+  const menuClass = `menu${align === 'end' ? ' end' : ''}${compact ? ' compact' : ''}`;
 
   return (
     <div className={rootClass} ref={rootRef}>
       <button
         type="button"
         ref={buttonRef}
-        className={`dropdown__trigger${active ? ' dropdown__trigger--active' : ''}`}
+        className={`trigger${active ? ' active' : ''}`}
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
         onClick={() => setOpen(!open)}
@@ -74,10 +68,10 @@ export function Dropdown({
         {badge !== undefined && (
           <>
             {/* Explicit space, so the name reads "Industry 2 selected" however it is computed. */}{' '}
-            <span className="dropdown__badge">{badge}</span>
+            <span className="selected-count">{badge}</span>
           </>
         )}
-        <ChevronDownIcon className="dropdown__chevron" />
+        <ChevronDownIcon className="chevron" />
       </button>
       {open && (
         <div className={menuClass} id={menuId} role="group" aria-label={menuLabel}>

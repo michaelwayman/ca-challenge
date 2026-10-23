@@ -86,10 +86,9 @@ for (const path of templates) {
   }
 }
 
-// The React components: class names in className attributes, plus any BEM-shaped string
-// (components build modifier classes from fragments such as ' dropdown__trigger--active').
-const BEM =
-  /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:__[a-z0-9]+(?:-[a-z0-9]+)*)?(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$/;
+// The React components: class names in className attributes, plus the state classes that
+// components append as quoted fragments with a leading space (`trigger${active ? ' active' : ''}`).
+const APPENDED = /^ [a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const sources = [];
 
 function walkSources(dir) {
@@ -113,21 +112,15 @@ for (const path of sources) {
   for (const [, quoted, template] of text.matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)) {
     split(quoted ?? template).forEach((name) => names.add(name));
   }
-  // One pass per quote character, so a quoted fragment inside a template literal is found too.
-  for (const quote of ["'", '"', '`']) {
+  for (const quote of ["'", '"']) {
     for (const [, value] of text.matchAll(new RegExp(`${quote}([^${quote}\\n]*)${quote}`, 'g'))) {
-      split(value)
-        .filter((name) => BEM.test(name) && /__|--/.test(name))
-        .forEach((name) => names.add(name));
+      if (APPENDED.test(value)) names.add(value.trim());
     }
   }
   for (const name of names) {
-    // A trailing dash is a class built at runtime (stars__star--${kind}); a block that only
-    // namespaces its elements (brand-list__toolbar) needs no rule of its own.
+    // A trailing dash is a class built at runtime (star-${kind}).
     if (name.endsWith('-')) continue;
-    const namespaces = [...definedClasses].some((c) => c.startsWith(`${name}__`));
-    if (!definedClasses.has(name) && !namespaces)
-      problems.push(`${path}: class "${name}" has no CSS`);
+    if (!definedClasses.has(name)) problems.push(`${path}: class "${name}" has no CSS`);
   }
 }
 
