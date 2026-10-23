@@ -77,9 +77,6 @@ A second run reports everything `unchanged`.
 - **Tokens are verified locally**, so reads never depend on the auth service. The write endpoint also asks auth
   for current roles, so a demotion applies at once; if auth is down, the edit fails with a 503.
 - **WordPress passwords keep working**, and are re-hashed with Django's hasher on first login.
-- **Token changes are expand/contract:** add the new claim (auth writes old and new), move readers to it, then
-  drop the old one. Readers ignore claims they don't know, so neither service has to deploy first. I first built
-  a version claim instead, then went back to this as simpler and more standard.
 
 ### With more time
 
@@ -96,6 +93,9 @@ A second run reports everything `unchanged`.
 - **Signing keys stored in the auth database.** It's the 1/2 measure between doing too much and not enough.
 - **No type checker yet.** I'd add ty or mypy or pyright, but ruff and the test suite were enough for this size.
 - **One uv workspace:** It's easier to develop using a mono-repo than separate repos.
+- **Expand/contract for token changes:** add the new claim (auth writes old and new), move readers to it, then
+  drop the old one. Readers ignore claims they don't know, so neither service has to deploy first. I first built
+  a version claim instead, then went back to the AI's proposal as simpler and more standard.
 
 ### Where I overrode the AI
 
