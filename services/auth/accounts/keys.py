@@ -1,3 +1,13 @@
+"""The keys this service signs access tokens with.
+
+A key's life:
+1. Created by `rotate_signing_key` (or on first use). The newest unretired key signs.
+2. Published at /.well-known/jwks.json while it isn't retired, so services can check the
+   tokens it signed even after a newer key takes over.
+3. Retired (`rotate_signing_key --retire-old`) once every token it signed has expired.
+4. Deleted by `purge_tokens` a little later, taking its private key with it.
+"""
+
 import base64
 import secrets
 from datetime import timedelta
@@ -11,11 +21,12 @@ from django.utils import timezone
 
 from .models import SigningKey
 
-# How long the main app may keep using a JWKS document it fetched (shared.auth.verify.JWKSClient).
+# How long a service may keep using a copy of the published keys (shared.auth.verify.JWKSClient).
 JWKS_CACHE_SECONDS = 300
 
 
 def create_key() -> SigningKey:
+    """A new Ed25519 key pair. Being the newest, it signs from now on."""
     private = ed25519.Ed25519PrivateKey.generate()
     pem = private.private_bytes(
         serialization.Encoding.PEM,
@@ -31,7 +42,8 @@ def active_key() -> SigningKey:
     return key or create_key()
 
 
-def _jwk(key: SigningKey) -> dict[str, str]:
+def _public_jwk(key: SigningKey) -> dict[str, str]:
+    """The public half of `key`, in the JWK format services read."""
     private = serialization.load_pem_private_key(key.private_pem.encode(), password=None)
     raw = private.public_key().public_bytes(
         serialization.Encoding.Raw, serialization.PublicFormat.Raw
@@ -41,12 +53,14 @@ def _jwk(key: SigningKey) -> dict[str, str]:
 
 
 def jwks_document() -> dict[str, Any]:
-    active_key()  # make sure at least one key exists to publish
+    """Every unretired public key: what /.well-known/jwks.json serves."""
+    active_key()  # make sure there is at least one key to publish
     keys = SigningKey.objects.filter(retired_at__isnull=True).order_by("created_at", "id")
-    return {"keys": [_jwk(k) for k in keys]}
+    return {"keys": [_public_jwk(key) for key in keys]}
 
 
 def sign(payload: dict[str, Any]) -> str:
+    """A JWT of `payload`, signed with the active key and naming it in the `kid` header."""
     key = active_key()
     return jwt.encode(payload, key.private_pem, algorithm="EdDSA", headers={"kid": key.kid})
 

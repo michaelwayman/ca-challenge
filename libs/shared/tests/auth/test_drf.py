@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from shared.auth import drf
 from shared.auth.claims import AUDIENCE_APP, ISSUER, Introspection, Role, issue_claims
-from shared.auth.drf import JWTAuthentication, require_role
+from shared.auth.drf import JWTAuthentication, RequireRole
 from shared.auth.errors import IntrospectionUnavailable
 from shared.auth.testing import TestKey, jwks_document
 
@@ -25,17 +25,16 @@ def auth_settings(settings):
         "JWKS_URL": "http://auth.test/.well-known/jwks.json",
         "ISSUER": ISSUER,
         "AUDIENCE": AUDIENCE_APP,
-        "ACCEPTED_TOKEN_VERSIONS": [1],
         "INTROSPECTOR": "test_drf.fake_introspect",
     }
     return settings
 
 
 @pytest.fixture(autouse=True)
-def reset_verifier():
-    drf.get_verifier.cache_clear()
+def fresh_verifier():
+    drf.reset_verifier()
     yield
-    drf.get_verifier.cache_clear()
+    drf.reset_verifier()
 
 
 @pytest.fixture
@@ -90,9 +89,18 @@ class WhoAmI(APIView):
         return Response({"id": getattr(user, "id", None), "roles": getattr(user, "roles", None)})
 
 
+class IsEditor(RequireRole):
+    role = Role.EDITOR
+
+
+class IsEditorNow(RequireRole):
+    role = Role.EDITOR
+    fresh = True
+
+
 class EditorOnly(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [require_role(Role.EDITOR)]
+    permission_classes = [IsEditor]
 
     def get(self, request):
         return Response({"ok": True})
@@ -100,7 +108,7 @@ class EditorOnly(APIView):
 
 class EditorOnlyFresh(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [require_role(Role.EDITOR, fresh=True)]
+    permission_classes = [IsEditorNow]
 
     def get(self, request):
         return Response({"ok": True})
@@ -165,8 +173,18 @@ class TestRequireRole:
     def test_an_editor_is_allowed(self, key):
         assert call(EditorOnly, token(key, [Role.EDITOR])).status_code == 200
 
-    def test_the_permission_class_is_named_for_its_role(self):
-        assert require_role("editor").__name__ == "RequireRole_editor"
+    def test_a_subclass_without_a_role_allows_no_one(self, key):
+        class NoRole(RequireRole):
+            pass
+
+        class Guarded(APIView):
+            authentication_classes = [JWTAuthentication]
+            permission_classes = [NoRole]
+
+            def get(self, request):
+                return Response({"ok": True})
+
+        assert call(Guarded, token(key, [Role.EDITOR, Role.READER])).status_code == 403
 
 
 class TestFreshRoles:

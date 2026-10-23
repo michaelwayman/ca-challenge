@@ -80,7 +80,6 @@ CA_AUTH = {
     "JWKS_URL": os.environ.get("AUTH_JWKS_URL", "http://localhost:8001/.well-known/jwks.json"),
     "ISSUER": ISSUER,
     "AUDIENCE": AUDIENCE_APP,
-    "ACCEPTED_TOKEN_VERSIONS": [1],
     "INTROSPECTOR": "catalog.auth.introspect",
 }
 AUTH_INTROSPECT_URL = os.environ.get(

@@ -24,7 +24,7 @@ class TestLogin:
         claims = verifier.verify(body["access_token"])
         assert claims.sub == str(user.id)
         assert claims.roles == ("editor", "reader")
-        assert (claims.iss, claims.aud, claims.v) == (ISSUER, AUDIENCE_APP, 1)
+        assert (claims.iss, claims.aud) == (ISSUER, AUDIENCE_APP)
         assert 590 <= claims.exp - int(time.time()) <= 600
         assert body["token_type"] == "Bearer"
         assert body["expires_in"] == 600
@@ -118,22 +118,16 @@ class TestLogin:
         assert user.password.startswith("pbkdf2_")
 
 
-class TestTokenVersion:
-    def test_the_issued_version_follows_the_audience_setting(
-        self, api, make_user, settings, monkeypatch
-    ):
-        from shared.auth import claims as claims_module
-
-        monkeypatch.setitem(
-            claims_module._ENCODERS, 2, lambda c: {**claims_module._encode_v1(c), "v": 2}
-        )
-        make_user()
-        settings.AUDIENCES = {AUDIENCE_APP: {"token_version": 2}}
+class TestTokenFormat:
+    def test_the_token_carries_no_version_claim(self, api, make_user):
         import jwt
 
+        make_user()
         token = login(api).json()["access_token"]
+        payload = jwt.decode(token, options={"verify_signature": False})
 
-        assert jwt.decode(token, options={"verify_signature": False})["v"] == 2
+        assert "v" not in payload
+        assert {"sub", "roles", "iss", "aud", "iat", "exp", "jti"} <= set(payload)
 
 
 class TestJWKS:

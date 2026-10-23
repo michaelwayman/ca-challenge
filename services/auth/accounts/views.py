@@ -1,25 +1,27 @@
+"""The auth service's HTTP API. Each view parses the request, calls tokens.py, and answers.
+
+POST /api/auth/v1/token/        username + password -> token pair
+POST /api/auth/v1/refresh/      refresh token       -> new token pair
+POST /api/auth/v1/introspect/   access token        -> is it still good, current roles
+GET  /.well-known/jwks.json     the public keys services check tokens with
+"""
+
 import hmac
 
 from django.conf import settings
-from django.contrib.auth.hashers import check_password, make_password
-from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from shared.auth.claims import AUDIENCE_APP, ISSUER, Introspection
-from shared.auth.errors import KeysUnavailable, TokenError
-from shared.auth.verify import JWKSClient, TokenVerifier
+from shared.auth.claims import AUDIENCE_APP
 
 from . import keys, tokens
-from .models import User
-
-INVALID_CREDENTIALS = {"detail": "Invalid credentials."}
-_DUMMY_HASH = make_password("not-a-real-password")
 
 
 class PublicView(APIView):
+    """No session or token needed to call these endpoints."""
+
     authentication_classes = []
     permission_classes = []
 
@@ -32,20 +34,13 @@ class TokenRequest(serializers.Serializer):
 
 class TokenView(PublicView):
     def post(self, request):
-        data = TokenRequest(data=request.data)
-        data.is_valid(raise_exception=True)
-        audience = data.validated_data["audience"]
-        if audience not in settings.AUDIENCES:
+        data = _validated(TokenRequest, request)
+        if data["audience"] not in settings.AUDIENCES:
             return Response({"audience": "Unknown audience."}, status=status.HTTP_400_BAD_REQUEST)
-        user = User.objects.filter(username=data.validated_data["username"]).first()
-        password = data.validated_data["password"]
+        user = tokens.check_credentials(data["username"], data["password"])
         if user is None:
-            check_password(password, _DUMMY_HASH)  # same cost as a real check
-            return Response(INVALID_CREDENTIALS, status=status.HTTP_401_UNAUTHORIZED)
-        # Wrong password, unusable password and disabled user all look the same.
-        if not (user.check_password(password) and user.is_active):
-            return Response(INVALID_CREDENTIALS, status=status.HTTP_401_UNAUTHORIZED)
-        return Response(tokens.token_pair(user, audience))
+            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(tokens.token_pair(user, data["audience"]))
 
 
 class RefreshRequest(serializers.Serializer):
@@ -54,14 +49,27 @@ class RefreshRequest(serializers.Serializer):
 
 class RefreshView(PublicView):
     def post(self, request):
-        data = RefreshRequest(data=request.data)
-        data.is_valid(raise_exception=True)
-        pair = tokens.redeem_refresh_token(data.validated_data["refresh_token"])
+        data = _validated(RefreshRequest, request)
+        pair = tokens.redeem_refresh_token(data["refresh_token"])
         if pair is None:
             return Response(
                 {"detail": "Invalid refresh token."}, status=status.HTTP_401_UNAUTHORIZED
             )
         return Response(pair)
+
+
+class IntrospectRequest(serializers.Serializer):
+    token = serializers.CharField(max_length=8192)
+
+
+class IntrospectView(PublicView):
+    """For other services only: they must send the shared service secret."""
+
+    def post(self, request):
+        if not _has_service_secret(request):
+            return Response({"detail": "Unauthorized."}, status=status.HTTP_401_UNAUTHORIZED)
+        data = _validated(IntrospectRequest, request)
+        return Response(tokens.introspect(data["token"]).to_payload())
 
 
 def jwks(request):
@@ -70,44 +78,13 @@ def jwks(request):
     return response
 
 
-def _verifier() -> TokenVerifier:
-    # Reads the keys in-process (short cache, no refetch limit) so a key that was just
-    # rotated in is accepted immediately.
-    return TokenVerifier(
-        JWKSClient(keys.jwks_document, ttl=5, min_interval=0),
-        issuer=ISSUER,
-        audience=list(settings.AUDIENCES),
-        accepted_versions={a["token_version"] for a in settings.AUDIENCES.values()},
-    )
+def _validated(serializer_class, request) -> dict:
+    """The request body checked against `serializer_class`; a bad body is answered with 400."""
+    serializer = serializer_class(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    return serializer.validated_data
 
 
-class IntrospectRequest(serializers.Serializer):
-    token = serializers.CharField(max_length=8192)
-
-
-class IntrospectView(PublicView):
-    """For other services only (shared secret). Answers from the database, so a disabled
-    user or a changed role is reflected at once, unlike the token's own claims."""
-
-    def post(self, request):
-        secret = request.headers.get("X-Service-Secret", "")
-        if not hmac.compare_digest(secret.encode(), settings.SERVICE_SECRET.encode()):
-            return Response({"detail": "Unauthorized."}, status=status.HTTP_401_UNAUTHORIZED)
-        data = IntrospectRequest(data=request.data)
-        data.is_valid(raise_exception=True)
-        inactive = Response(Introspection(active=False).to_payload())
-        try:
-            claims = _verifier().verify(data.validated_data["token"])
-        except (TokenError, KeysUnavailable):
-            return inactive
-        try:
-            user = User.objects.filter(pk=claims.sub, is_active=True).first()
-        except (ValidationError, ValueError):
-            return inactive
-        if user is None:
-            return inactive
-        return Response(
-            Introspection(
-                active=True, sub=str(user.id), roles=tuple(user.role_names())
-            ).to_payload()
-        )
+def _has_service_secret(request) -> bool:
+    secret = request.headers.get("X-Service-Secret", "")
+    return hmac.compare_digest(secret.encode(), settings.SERVICE_SECRET.encode())

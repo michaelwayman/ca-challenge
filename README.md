@@ -93,6 +93,9 @@ A second run reports everything `unchanged`.
 - **Signing keys stored in the auth database.** It's the 1/2 measure between doing too much and not enough.
 - **No type checker yet.** I'd add ty or mypy or pyright, but ruff and the test suite were enough for this size.
 - **One uv workspace:** It's easier to develop using a mono-repo than separate repos.
+- **Expand/contract for token changes:** add the new claim (auth writes old and new), move readers to it, then
+  drop the old one. Readers ignore claims they don't know, so neither service has to deploy first. I first built
+  a version claim instead, then went back to the AI's proposal as simpler and more standard.
 
 ### Where I overrode the AI
 
@@ -101,5 +104,3 @@ A second run reports everything `unchanged`.
 - **Brand descriptions:** it invented a second `short_description` field that WordPress never had. I kept one
   description, as WordPress does.
 - **Data fetching:** it proposed a hand-written hooks; I used TanStack Query for caching and cancellation.
-- **Breaking token changes:** it proposed expand-and-contract. I added a version claim, so each service can move
-  to a new token format on its own schedule.

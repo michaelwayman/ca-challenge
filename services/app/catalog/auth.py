@@ -1,7 +1,7 @@
 """Client for the auth service's introspection endpoint, used by the write endpoint.
 
 Lives here, not in the shared library: only this service calls it, and it changes with
-the auth service's API. The library's `require_role(..., fresh=True)` reaches it through
+the auth service's API. The library's `RequireRole` with `fresh = True` reaches it through
 settings.CA_AUTH["INTROSPECTOR"].
 """
 

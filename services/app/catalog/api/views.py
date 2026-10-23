@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from catalog.models import Brand, Review
 from shared.auth.claims import Role
-from shared.auth.drf import JWTAuthentication, require_role
+from shared.auth.drf import JWTAuthentication, RequireRole
 
 from .filters import filter_by_industry, order_brands
 from .pagination import BrandPagination
@@ -53,8 +53,12 @@ class BrandListView(ListAPIView):
         return order_brands(queryset, self.request.query_params.get("ordering"))
 
 
-# Asks the auth service for current roles, so a demotion or revocation applies at once.
-EditorWithFreshRoles = require_role(Role.EDITOR, fresh=True)
+class EditorWithFreshRoles(RequireRole):
+    """Editors only, checked against the auth service's current roles, so a demotion or
+    a disabled user applies at once."""
+
+    role = Role.EDITOR
+    fresh = True
 
 
 class BrandDetailView(APIView):
