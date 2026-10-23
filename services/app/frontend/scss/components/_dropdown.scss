@@ -2,155 +2,155 @@
 @use '../abstracts/tokens' as t;
 
 // A button that opens a floating menu (components/ui/Dropdown). The menu holds rows
-// (.dropdown__option) or anything else; MultiSelect is built on it.
+// (.option) or anything else; MultiSelect is built on it.
 
 // The wrapper: the menu is positioned against it.
 .dropdown {
   position: relative;
-}
 
-// On a phone the menu spans the whole row instead of one button: make the dropdown
-// static, and the nearest positioned ancestor (the toolbar) becomes the menu's anchor.
-.dropdown--sheet {
-  @include m.below('sm') {
-    position: static;
-    flex: 1;
+  // On a phone the menu spans the whole row instead of one button: make the dropdown
+  // static, and the nearest positioned ancestor (the toolbar) becomes the menu's anchor.
+  &.sheet {
+    @include m.below('sm') {
+      position: static;
+      flex: 1;
+    }
   }
-}
 
-// The pill-shaped button.
-.dropdown__trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: t.space(2);
-  width: 100%;
-  min-height: t.size('control');
-  padding: 0 t.space(4);
-  border: 1px solid t.color('border');
-  border-radius: t.radius('pill');
-  background: t.color('surface');
-  color: t.color('text');
-  font: inherit;
-  font-size: t.text-size('sm');
-  cursor: pointer;
+  // The pill-shaped button.
+  .trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: t.space(2);
+    width: 100%;
+    min-height: t.size('control');
+    padding: 0 t.space(4);
+    border: 1px solid t.color('border');
+    border-radius: t.radius('pill');
+    background: t.color('surface');
+    color: t.color('text');
+    font: inherit;
+    font-size: t.text-size('sm');
+    cursor: pointer;
 
-  @include m.focus-ring;
+    @include m.focus-ring;
 
-  &:hover {
-    border-color: t.color('muted');
+    &:hover {
+      border-color: t.color('muted');
+    }
+
+    // Something is chosen: the button says so with the brand colour.
+    &.active {
+      border-color: t.color('primary');
+      background: t.color('badge-bg');
+      color: t.color('primary-dark');
+      font-weight: t.weight('semibold');
+    }
   }
-}
 
-// Something is chosen: the button says so with the brand colour.
-.dropdown__trigger--active {
-  border-color: t.color('primary');
-  background: t.color('badge-bg');
-  color: t.color('primary-dark');
-  font-weight: t.weight('semibold');
-}
+  .chevron {
+    margin-left: auto;
+    color: t.color('muted');
+  }
 
-.dropdown__chevron {
-  margin-left: auto;
-  color: t.color('muted');
-}
+  // How many are chosen, inside the button.
+  .selected-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 t.space(1);
+    border-radius: t.radius('pill');
+    background: t.color('primary');
+    color: t.color('on-primary');
+    font-size: t.text-size('xs');
+    font-weight: t.weight('semibold');
+  }
 
-// How many are chosen, inside the button.
-.dropdown__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 t.space(1);
-  border-radius: t.radius('pill');
-  background: t.color('primary');
-  color: t.color('on-primary');
-  font-size: t.text-size('xs');
-  font-weight: t.weight('semibold');
-}
-
-.dropdown__menu {
-  position: absolute;
-  top: calc(100% + #{t.space(2)});
-  left: 0;
-  z-index: t.layer('popover');
-  display: flex;
-  flex-direction: column;
-  width: t.size('menu');
-  max-width: calc(100vw - 2rem);
-  padding: t.space(2);
-  border: 1px solid t.color('border');
-  border-radius: t.radius('md');
-  background: t.color('surface');
-  box-shadow: t.shadow('popover');
-
-  @include m.below('sm') {
-    right: 0;
+  .menu {
+    position: absolute;
+    top: calc(100% + #{t.space(2)});
     left: 0;
-    width: auto;
-    max-width: none;
-  }
-}
+    z-index: t.layer('popover');
+    display: flex;
+    flex-direction: column;
+    width: t.size('menu');
+    max-width: calc(100vw - 2rem);
+    padding: t.space(2);
+    border: 1px solid t.color('border');
+    border-radius: t.radius('md');
+    background: t.color('surface');
+    box-shadow: t.shadow('popover');
 
-// A narrower menu, for short labels.
-.dropdown__menu--compact {
-  width: t.size('menu-sm');
+    @include m.below('sm') {
+      right: 0;
+      left: 0;
+      width: auto;
+      max-width: none;
+    }
 
-  @include m.below('sm') {
-    width: auto;
-  }
-}
+    // A narrower menu, for short labels.
+    &.compact {
+      width: t.size('menu-sm');
 
-// Opens towards the left, so a control at the right edge stays on screen.
-.dropdown__menu--end {
-  right: 0;
-  left: auto;
+      @include m.below('sm') {
+        width: auto;
+      }
+    }
 
-  @include m.below('sm') {
-    left: 0;
-  }
-}
+    // Opens towards the left, so a control at the right edge stays on screen.
+    &.end {
+      right: 0;
+      left: auto;
 
-// Scrolls on its own, so the list can grow with the data behind it.
-.dropdown__options {
-  @include m.list-reset;
-
-  max-height: min(20rem, 55vh);
-  overflow-y: auto;
-}
-
-.dropdown__option {
-  display: flex;
-  align-items: center;
-  gap: t.space(3);
-  min-height: t.size('control');
-  padding: 0 t.space(3);
-  border-radius: t.radius('sm');
-  font-size: t.text-size('sm');
-  cursor: pointer;
-
-  &:hover {
-    background: t.color('bg');
+      @include m.below('sm') {
+        left: 0;
+      }
+    }
   }
 
-  // Rows holding a real input show the ring when the input has focus.
-  &:has(:focus-visible) {
-    outline: 2px solid t.color('primary');
-    outline-offset: -2px;
+  // Scrolls on its own, so the list can grow with the data behind it.
+  .options {
+    @include m.list-reset;
+
+    max-height: min(20rem, 55vh);
+    overflow-y: auto;
   }
-}
 
-// A number at the end of a row (how many brands an industry has).
-.dropdown__count {
-  margin-left: auto;
-  color: t.color('muted');
-}
+  .option {
+    display: flex;
+    align-items: center;
+    gap: t.space(3);
+    min-height: t.size('control');
+    padding: 0 t.space(3);
+    border-radius: t.radius('sm');
+    font-size: t.text-size('sm');
+    cursor: pointer;
 
-.dropdown__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: t.space(1);
-  padding: t.space(2) t.space(2) 0;
-  border-top: 1px solid t.color('border');
+    &:hover {
+      background: t.color('bg');
+    }
+
+    // Rows holding a real input show the ring when the input has focus.
+    &:has(:focus-visible) {
+      outline: 2px solid t.color('primary');
+      outline-offset: -2px;
+    }
+  }
+
+  // A number at the end of a row (how many brands an industry has).
+  .count {
+    margin-left: auto;
+    color: t.color('muted');
+  }
+
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: t.space(1);
+    padding: t.space(2) t.space(2) 0;
+    border-top: 1px solid t.color('border');
+  }
 }

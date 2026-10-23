@@ -7,14 +7,14 @@
   flex-wrap: wrap;
   align-items: center;
   gap: t.space(2);
-}
 
-.tags__list {
-  @include m.list-reset;
+  ul {
+    @include m.list-reset;
 
-  display: flex;
-  flex-wrap: wrap;
-  gap: t.space(2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: t.space(2);
+  }
 }
 
 .tag {
@@ -29,21 +29,21 @@
   color: t.color('primary-dark');
   font-size: t.text-size('sm');
   font-weight: t.weight('semibold');
-}
 
-.tag__remove {
-  @include m.button-reset;
+  .remove {
+    @include m.button-reset;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
 
-  @include m.focus-ring(1px);
+    @include m.focus-ring(1px);
 
-  &:hover {
-    background: t.color('badge-border');
+    &:hover {
+      background: t.color('badge-border');
+    }
   }
 }

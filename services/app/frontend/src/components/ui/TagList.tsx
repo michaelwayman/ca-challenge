@@ -32,13 +32,13 @@ export function TagList({
 }: TagListProps) {
   return (
     <div className={['tags', className].filter(Boolean).join(' ')}>
-      <ul className="tags__list" aria-label={label} ref={listRef}>
+      <ul aria-label={label} ref={listRef}>
         {tags.map((tag) => (
           <li key={tag.key} className="tag">
             {tag.label}
             <button
               type="button"
-              className="tag__remove"
+              className="remove"
               aria-label={removeLabel(tag)}
               onClick={() => onRemove(tag.key)}
             >
@@ -48,7 +48,7 @@ export function TagList({
         ))}
       </ul>
       {onClear && (
-        <button type="button" className="button button--link" onClick={onClear}>
+        <button type="button" className="button link" onClick={onClear}>
           Clear all
         </button>
       )}

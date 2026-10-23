@@ -2,22 +2,11 @@
   "extends": ["stylelint-config-standard-scss"],
   "rules": {
     "selector-class-pattern": [
-      "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*(?:__[a-z0-9]+(?:-[a-z0-9]+)*)?(?:--[a-z0-9]+(?:-[a-z0-9]+)*)?$",
-      { "message": "Use BEM: block, block__element or block--modifier (lowercase, hyphenated)." }
+      "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+      { "message": "Use lowercase, hyphenated class names, as the reference theme does." }
     ],
-    "selector-max-compound-selectors": 1,
-    "max-nesting-depth": [2, { "ignoreAtRules": ["include", "media"] }],
-    "selector-max-id": 0,
-    "selector-max-type": 0
-  },
-  "overrides": [
-    {
-      "files": ["scss/base/**/*.scss"],
-      "rules": { "selector-max-type": null }
-    },
-    {
-      "files": ["scss/components/_prose.scss"],
-      "rules": { "selector-max-compound-selectors": 2 }
-    }
-  ]
+    "selector-max-compound-selectors": 3,
+    "max-nesting-depth": [3, { "ignoreAtRules": ["include", "media"] }],
+    "selector-max-id": 0
+  }
 }

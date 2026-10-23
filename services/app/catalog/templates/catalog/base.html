@@ -11,12 +11,12 @@
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
-      <div class="container site-header__inner">
-        <p class="site-header__title"><a class="site-header__link" href="{% url 'home' %}">Brand Reviews</a></p>
+      <div class="container">
+        <p class="site-title"><a href="{% url 'home' %}">Brand Reviews</a></p>
         <nav class="site-nav" aria-label="Primary">
           {% url 'home' as home_url %}{% url 'brand-list' as brands_url %}
-          <a class="site-nav__link" href="{{ home_url }}" {% if request.path == home_url %} aria-current="page"{% endif %}>Home</a>
-          <a class="site-nav__link" href="{{ brands_url }}" {% if request.path == brands_url %} aria-current="page"{% endif %}>Brands</a>
+          <a href="{{ home_url }}" {% if request.path == home_url %} aria-current="page"{% endif %}>Home</a>
+          <a href="{{ brands_url }}" {% if request.path == brands_url %} aria-current="page"{% endif %}>Brands</a>
         </nav>
       </div>
     </header>

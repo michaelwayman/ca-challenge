@@ -1,44 +1,39 @@
 @use '../abstracts/mixins' as m;
 @use '../abstracts/tokens' as t;
 
-.review {
+// A review in a brand page's list. Reference: .review-item .review-head, .review-item h3 a,
+// .review-item .review-byline, .review-item .review-body.
+.review-item {
   @include m.surface;
 
   margin-bottom: t.space(4);
+
+  .review-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: t.space(4);
+    margin-bottom: t.space(2);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: t.text-size('md');
+    font-weight: t.weight('semibold');
+
+    a {
+      color: t.color('text');
+    }
+  }
+
+  .review-body {
+    color: t.color('text-soft');
+  }
 }
 
-.review__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: t.space(4);
-  margin-bottom: t.space(2);
-}
-
-.review__brand {
-  margin: 0 0 t.space(1);
-  font-size: t.text-size('xs');
-  font-weight: t.weight('semibold');
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.review__title {
-  margin: 0;
-  font-size: t.text-size('md');
-  font-weight: t.weight('semibold');
-}
-
-.review__link {
-  color: t.color('text');
-}
-
-.review__byline {
+// Who wrote a review, where and when; in a review item and in a review's hero.
+.review-byline {
   margin: t.space(1) 0 t.space(3);
   color: t.color('muted');
   font-size: t.text-size('sm');
-}
-
-.review__body {
-  color: t.color('text-soft');
 }

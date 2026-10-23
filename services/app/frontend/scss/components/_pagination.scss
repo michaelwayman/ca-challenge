@@ -1,6 +1,7 @@
 @use '../abstracts/mixins' as m;
 @use '../abstracts/tokens' as t;
 
+// Reference: .pagination .page-numbers, .page-numbers.current (WordPress's paginate_links).
 .pagination {
   @include m.list-reset;
 
@@ -8,37 +9,37 @@
   flex-wrap: wrap;
   gap: t.space(2);
   margin-top: t.space(6);
-}
 
-// 44px minimum so the links are comfortable touch targets.
-.pagination__link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: t.size('control');
-  min-height: t.size('control');
-  padding: t.space(2) t.space(3);
-  border: 1px solid t.color('border');
-  border-radius: t.radius('sm');
-  background: t.color('surface');
-  color: t.color('text');
-}
+  // 44px minimum so the links are comfortable touch targets.
+  .page-numbers {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: t.size('control');
+    min-height: t.size('control');
+    padding: t.space(2) t.space(3);
+    border: 1px solid t.color('border');
+    border-radius: t.radius('sm');
+    background: t.color('surface');
+    color: t.color('text');
 
-.pagination__link--current {
-  border-color: t.color('primary');
-  background: t.color('primary');
-  color: t.color('on-primary');
-}
+    &.current {
+      border-color: t.color('primary');
+      background: t.color('primary');
+      color: t.color('on-primary');
+    }
 
-.pagination__link--disabled {
-  color: t.color('muted');
-  cursor: not-allowed;
-}
+    &.disabled {
+      color: t.color('muted');
+      cursor: not-allowed;
+    }
+  }
 
-.pagination__gap {
-  display: inline-flex;
-  align-items: center;
-  min-height: t.size('control');
-  padding: 0 t.space(1);
-  color: t.color('muted');
+  .dots {
+    display: inline-flex;
+    align-items: center;
+    min-height: t.size('control');
+    padding: 0 t.space(1);
+    color: t.color('muted');
+  }
 }

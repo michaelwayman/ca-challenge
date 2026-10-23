@@ -32,7 +32,7 @@ interface PageLinkProps {
 function PageLink({ href, current = false, onActivate, children }: PageLinkProps) {
   return (
     <a
-      className={`pagination__link${current ? ' pagination__link--current' : ''}`}
+      className={`page-numbers${current ? ' current' : ''}`}
       href={href}
       aria-current={current ? 'page' : undefined}
       onClick={(event) => {
@@ -48,7 +48,7 @@ function PageLink({ href, current = false, onActivate, children }: PageLinkProps
 
 function DisabledLink({ children }: { children: string }) {
   return (
-    <span className="pagination__link pagination__link--disabled" aria-disabled="true">
+    <span className="page-numbers disabled" aria-disabled="true">
       {children}
     </span>
   );
@@ -70,7 +70,7 @@ export function Pagination({ page, totalPages, hrefFor, onPage }: PaginationProp
         {pageItems(page, totalPages).map((item, index) => (
           <li key={item === 'gap' ? `gap-${index}` : item}>
             {item === 'gap' ? (
-              <span className="pagination__gap" aria-hidden="true">
+              <span className="dots" aria-hidden="true">
                 &hellip;
               </span>
             ) : (

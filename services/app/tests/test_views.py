@@ -84,7 +84,7 @@ class TestHome:
 
         html = client.get("/").content.decode()
 
-        assert html.count('class="card__title"') == 1 + 6  # one brand card + six reviews
+        assert html.count('<article class="card">') == 1 + 6  # one brand card + six reviews
 
     def test_query_count_does_not_grow_with_data(self, client, django_assert_max_num_queries):
         for i in range(6):
@@ -232,7 +232,7 @@ class TestStarsTag:
 
     @pytest.mark.parametrize(("rating", "full"), [(3.9, 4), (3.4, 3), (3.5, 4), (0, 0), (5, 5)])
     def test_fills_to_the_nearest_whole_star(self, rating, full):
-        assert self.render(rating).count("stars__star--full") == full
+        assert self.render(rating).count('class="star-full"') == full
 
     def test_no_rating_renders_a_message_not_empty_stars(self):
         assert "No ratings yet" in self.render(None)
@@ -246,21 +246,21 @@ class TestHeroMatchesWordPress:
         ("url", "classes"),
         [
             ("/", 'class="hero"'),
-            ("/brand/", 'class="hero hero--compact"'),
+            ("/brand/", 'class="hero compact"'),
         ],
     )
     def test_home_and_archives_use_the_gradient_hero(self, client, db, url, classes):
         html = client.get(url).content.decode()
 
         assert f"<section {classes}>" in html
-        assert "hero--plain" not in html
+        assert "brand-hero" not in html and "review-hero" not in html
 
     def test_single_brand_and_review_pages_use_the_white_hero(self, client, db):
         brand = make_brand("acme")
         make_review(brand, "one")
 
-        assert 'class="hero hero--plain"' in client.get("/brand/acme/").content.decode()
-        assert 'class="hero hero--plain"' in client.get("/review/one/").content.decode()
+        assert '<section class="brand-hero">' in client.get("/brand/acme/").content.decode()
+        assert '<section class="review-hero">' in client.get("/review/one/").content.decode()
 
 
 class TestBrandListPage:
@@ -330,9 +330,7 @@ class TestNav:
     def test_marks_the_current_page(self, client, url, current):
         html = client.get(url).content.decode()
 
-        marked = re.findall(
-            r'<a class="site-nav__link"[^>]*aria-current="page"[^>]*>(\w+)</a>', html
-        )
+        marked = re.findall(r'<a [^>]*aria-current="page"[^>]*>(\w+)</a>', html)
         assert marked == [current]
 
     def test_marks_nothing_on_a_detail_page(self, client):

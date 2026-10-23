@@ -12,10 +12,10 @@ interface NoticeProps {
 export function Notice({ tone = 'neutral', action, children }: NoticeProps) {
   return (
     <div
-      className={`notice${tone === 'error' ? ' notice--error' : ''}`}
+      className={`notice${tone === 'error' ? ' error' : ''}`}
       role={tone === 'error' ? 'alert' : undefined}
     >
-      <p className="notice__message">{children}</p>
+      <p className="message">{children}</p>
       {action && (
         <button type="button" className="button" onClick={action.onClick}>
           {action.label}

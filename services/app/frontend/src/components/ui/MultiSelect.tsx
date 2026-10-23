@@ -57,13 +57,13 @@ export function MultiSelect({
     >
       {({ close }) => (
         <>
-          <ul className="dropdown__options">
+          <ul className="options">
             {options.map((option) => {
               const { count } = option;
               const describedBy = `${countId}-${option.value}`;
               return (
                 <li key={option.value}>
-                  <label className="dropdown__option">
+                  <label className="option">
                     <input
                       type="checkbox"
                       className="checkbox"
@@ -73,7 +73,7 @@ export function MultiSelect({
                     />
                     {option.label}
                     {count !== undefined && (
-                      <span className="dropdown__count" aria-hidden="true">
+                      <span className="count" aria-hidden="true">
                         {count}
                       </span>
                     )}
@@ -87,15 +87,15 @@ export function MultiSelect({
               );
             })}
           </ul>
-          <div className="dropdown__footer">
+          <div className="footer">
             {selected.length > 0 ? (
-              <button type="button" className="button button--link" onClick={() => onChange([])}>
+              <button type="button" className="button link" onClick={() => onChange([])}>
                 Clear
               </button>
             ) : (
               <span />
             )}
-            <button type="button" className="button button--small" onClick={close}>
+            <button type="button" className="button small" onClick={close}>
               Done
             </button>
           </div>

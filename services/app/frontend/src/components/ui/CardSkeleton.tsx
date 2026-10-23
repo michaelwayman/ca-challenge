@@ -9,11 +9,11 @@ export function CardSkeleton({ count = 6 }: CardSkeletonProps) {
     <div className="grid" aria-hidden="true" data-testid="card-skeleton">
       {Array.from({ length: count }, (_, index) => (
         <div key={index} className="card">
-          <span className="skeleton skeleton--badge" />
-          <span className="skeleton skeleton--title" />
-          <span className="skeleton skeleton--line" />
-          <span className="skeleton skeleton--line" />
-          <span className="skeleton skeleton--block" />
+          <span className="skeleton skeleton-badge" />
+          <span className="skeleton skeleton-title" />
+          <span className="skeleton skeleton-line" />
+          <span className="skeleton skeleton-line" />
+          <span className="skeleton skeleton-block" />
         </div>
       ))}
     </div>

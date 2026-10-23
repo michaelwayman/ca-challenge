@@ -116,14 +116,14 @@ describe('loading and results', () => {
     await user.click(checkbox('Telecom'));
 
     expect(screen.getByRole('heading', { name: 'Acme' })).toBeInTheDocument();
-    expect(container.querySelector('.brand-list__results')).toHaveAttribute('aria-busy', 'true');
+    expect(container.querySelector('.brand-list .results')).toHaveAttribute('aria-busy', 'true');
     expect(screen.getByRole('status')).toHaveTextContent('Updating results');
 
     slow.resolve(jsonResponse(makePage([makeBrand('swift')])));
 
     expect(await screen.findByRole('heading', { name: 'Swift' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Acme' })).not.toBeInTheDocument();
-    expect(container.querySelector('.brand-list__results')).toHaveAttribute('aria-busy', 'false');
+    expect(container.querySelector('.brand-list .results')).toHaveAttribute('aria-busy', 'false');
   });
 });
 
@@ -505,7 +505,7 @@ describe('industry dropdown', () => {
     const menu = await openIndustries(user);
 
     expect(within(menu).getAllByRole('checkbox')).toHaveLength(40);
-    expect(menu.querySelectorAll('.dropdown__options')).toHaveLength(1);
+    expect(menu.querySelectorAll('.options')).toHaveLength(1);
   });
 });
 
