@@ -1,20 +1,27 @@
-"""Django REST framework adapter: authenticate a bearer token, require a role.
+"""Django REST framework support: read a bearer token, and require a role.
 
-Needs the `drf` extra. Configured through `settings.CA_AUTH`:
+Needs the `drf` extra. Configured in the service's settings:
 
     CA_AUTH = {
         "JWKS_URL": "http://auth:8001/.well-known/jwks.json",
         "ISSUER": shared.auth.claims.ISSUER,
         "AUDIENCE": shared.auth.claims.AUDIENCE_APP,
-        # Dotted path of a callable (token: str) -> Introspection. Only needed by
-        # endpoints that use require_role(..., fresh=True). The client lives in the
-        # service, because only that service calls the auth API.
+        # Only for RequireRole with fresh = True: dotted path to a function
+        # (token: str) -> Introspection that asks the auth service about the token.
         "INTROSPECTOR": "myapp.auth.introspect",
     }
+
+Protecting a view:
+
+    class EditorOnly(RequireRole):
+        role = Role.EDITOR
+
+    class EditBrand(APIView):
+        authentication_classes = [JWTAuthentication]
+        permission_classes = [EditorOnly]
 """
 
 from dataclasses import dataclass
-from functools import lru_cache
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -34,6 +41,8 @@ class AuthServiceUnavailable(exceptions.APIException):
 
 @dataclass(frozen=True)
 class AuthenticatedUser:
+    """`request.user` for a request with a valid token."""
+
     id: str
     roles: tuple[str, ...]
     is_authenticated = True
@@ -42,34 +51,50 @@ class AuthenticatedUser:
 
 @dataclass(frozen=True)
 class VerifiedToken:
+    """`request.auth` for a request with a valid token."""
+
     claims: Claims
     raw: str
 
 
-@lru_cache(maxsize=1)
+_verifier: TokenVerifier | None = None
+
+
 def get_verifier() -> TokenVerifier:
-    config = settings.CA_AUTH
-    return TokenVerifier(
-        JWKSClient(http_fetch(config["JWKS_URL"])),
-        issuer=config["ISSUER"],
-        audience=config["AUDIENCE"],
-    )
+    """The verifier this process uses for every request.
+
+    There is one per process because it holds the downloaded public keys: a new verifier per
+    request would download them every time. It is built on first use because Django's
+    settings aren't loaded yet when this module is imported.
+    """
+    global _verifier
+    if _verifier is None:
+        config = settings.CA_AUTH
+        _verifier = TokenVerifier(
+            JWKSClient(http_fetch(config["JWKS_URL"])),
+            issuer=config["ISSUER"],
+            audience=config["AUDIENCE"],
+        )
+    return _verifier
+
+
+def reset_verifier() -> None:
+    """Forget the verifier, so the next request builds a new one (tests, settings changes)."""
+    global _verifier
+    _verifier = None
 
 
 class JWTAuthentication(BaseAuthentication):
-    """`Authorization: Bearer <token>`. No header means anonymous (the view's
-    permissions decide); a header that is present but bad is a 401."""
+    """Reads `Authorization: Bearer <token>`.
+
+    No header: the request is anonymous, and the view's permissions decide. A header that is
+    present but invalid: 401. The auth service's keys can't be fetched: 503.
+    """
 
     def authenticate(self, request):
-        parts = get_authorization_header(request).split()
-        if not parts or parts[0].lower() != b"bearer":
+        raw = _bearer_token(request)
+        if raw is None:
             return None
-        if len(parts) != 2:
-            raise exceptions.AuthenticationFailed("Invalid Authorization header.")
-        try:
-            raw = parts[1].decode()
-        except UnicodeDecodeError as exc:
-            raise exceptions.AuthenticationFailed("Invalid Authorization header.") from exc
         try:
             claims = get_verifier().verify(raw)
         except KeysUnavailable as exc:
@@ -79,34 +104,51 @@ class JWTAuthentication(BaseAuthentication):
         return AuthenticatedUser(id=claims.sub, roles=claims.roles), VerifiedToken(claims, raw)
 
     def authenticate_header(self, request):
-        return 'Bearer realm="api"'
+        return 'Bearer realm="api"'  # makes DRF answer 401, not 403, when there's no token
 
 
-def require_role(role: str, *, fresh: bool = False) -> type[permissions.BasePermission]:
-    """A permission class allowing only users holding `role`.
+def _bearer_token(request) -> str | None:
+    """The token from `Authorization: Bearer <token>`, or None if there is no bearer header."""
+    parts = get_authorization_header(request).split()
+    if not parts or parts[0].lower() != b"bearer":
+        return None
+    if len(parts) != 2:
+        raise exceptions.AuthenticationFailed("Invalid Authorization header.")
+    try:
+        return parts[1].decode()
+    except UnicodeDecodeError as exc:
+        raise exceptions.AuthenticationFailed("Invalid Authorization header.") from exc
 
-    A valid token's roles can be up to one token lifetime out of date. With
-    `fresh=True` the auth service is asked for the user's current roles, so a revoked
-    token or a demotion takes effect immediately. If it cannot be asked, the request
-    fails with 503 rather than trusting the token's own roles.
+
+class RequireRole(permissions.BasePermission):
+    """Allows only users holding `role`. Subclass it and set the attributes:
+
+        class EditorWithFreshRoles(RequireRole):
+            role = Role.EDITOR
+            fresh = True
+
+    The roles in a token can be up to one token lifetime out of date. With `fresh = True` the
+    auth service is asked for the user's current roles, so a demotion or a disabled user takes
+    effect at once; if it can't be asked, the request fails with 503 rather than trusting the
+    token.
     """
 
-    class RequireRole(permissions.BasePermission):
-        def has_permission(self, request, view):
-            user = request.user
-            if not getattr(user, "is_authenticated", False):
-                return False  # DRF turns this into 401 because we set authenticate_header
-            roles = user.roles
-            if fresh:
-                introspect = import_string(settings.CA_AUTH["INTROSPECTOR"])
-                try:
-                    result = introspect(request.auth.raw)
-                except IntrospectionUnavailable as exc:
-                    raise AuthServiceUnavailable from exc
-                if not result.active:
-                    raise exceptions.AuthenticationFailed("Token is no longer valid.")
-                roles = result.roles
-            return str(role) in roles
+    role: str = ""
+    fresh: bool = False
 
-    RequireRole.__name__ = f"RequireRole_{role}"
-    return RequireRole
+    def has_permission(self, request, view):
+        if not getattr(request.user, "is_authenticated", False):
+            return False
+        return str(self.role) in self._current_roles(request)
+
+    def _current_roles(self, request) -> tuple[str, ...]:
+        if not self.fresh:
+            return request.user.roles
+        introspect = import_string(settings.CA_AUTH["INTROSPECTOR"])
+        try:
+            answer = introspect(request.auth.raw)
+        except IntrospectionUnavailable as exc:
+            raise AuthServiceUnavailable from exc
+        if not answer.active:
+            raise exceptions.AuthenticationFailed("Token is no longer valid.")
+        return answer.roles
