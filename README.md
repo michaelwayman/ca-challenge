@@ -20,6 +20,21 @@ make up      # both services, their databases and the WordPress source; then run
 - **Web app:** <http://localhost:8000>.
 - **`<BrandList />`:** <http://localhost:8000/brand/>
 - **Auth service:** <http://localhost:8001>.
+- **`<BrandList />` on its own:** `cd services/app/frontend && pnpm install && pnpm dev` serves it at
+  <http://localhost:5173>, proxying `/api` to the app.
+
+## Compile the SCSS
+
+The source is in `services/app/frontend/scss/` (entry `main.scss`); the output is
+`services/app/static/css/site.css`, which Django serves. You need Node and pnpm (`make setup` installs the
+packages).
+
+```bash
+make css                                                                          # minified, as the site serves it
+cd services/app/frontend && pnpm exec sass scss/main.scss ../static/css/site.css  # readable, not minified
+```
+
+`make css-watch` rebuilds the readable version on every save.
 
 ## Get a token and call the protected endpoint
 
@@ -59,8 +74,8 @@ docker compose exec app python manage.py import_wordpress
 docker compose exec auth python manage.py import_wordpress_users
 ```
 
-It is safe to re-run
-A second run reports everything `unchanged`.
+It is safe to re-run: rows are matched on their WordPress id and updated in place, each run is one transaction,
+and nothing is deleted unless you pass `--prune`. A second run reports everything `unchanged`.
 
 ## Decisions
 
