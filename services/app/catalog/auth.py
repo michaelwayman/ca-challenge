@@ -10,8 +10,8 @@ import logging
 import httpx
 from django.conf import settings
 
-from ca_authlib.claims import Introspection
-from ca_authlib.errors import IntrospectionUnavailable, InvalidIntrospection
+from shared.auth.claims import Introspection
+from shared.auth.errors import IntrospectionUnavailable, InvalidIntrospection
 
 logger = logging.getLogger(__name__)
 

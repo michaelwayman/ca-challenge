@@ -8,9 +8,9 @@ from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ca_authlib.claims import AUDIENCE_APP, ISSUER, Introspection
-from ca_authlib.errors import KeysUnavailable, TokenError
-from ca_authlib.verify import JWKSClient, TokenVerifier
+from shared.auth.claims import AUDIENCE_APP, ISSUER, Introspection
+from shared.auth.errors import KeysUnavailable, TokenError
+from shared.auth.verify import JWKSClient, TokenVerifier
 
 from . import keys, tokens
 from .models import User

@@ -7,9 +7,9 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ca_authlib.claims import Role
-from ca_authlib.drf import JWTAuthentication, require_role
 from catalog.models import Brand, Review
+from shared.auth.claims import Role
+from shared.auth.drf import JWTAuthentication, require_role
 
 from .filters import filter_by_industry, order_brands
 from .pagination import BrandPagination

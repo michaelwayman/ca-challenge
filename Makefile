@@ -60,7 +60,7 @@ format:
 test: test-py test-fe
 
 test-py:
-	uv run --package ca-authlib --group test pytest libs/ca_authlib
+	uv run --package shared --group test pytest libs/shared
 	uv run --package reviews-app pytest services/app
 	uv run --package reviews-auth pytest services/auth
 

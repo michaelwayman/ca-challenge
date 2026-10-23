@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shared"
+version = "0.2.0"
+description = "Code both services use: token claims, verification and permission checks (auth), and reading the WordPress source (wp_migration)."
+requires-python = ">=3.13"
+dependencies = ["pyjwt[crypto]>=2.9"]
+
+[project.optional-dependencies]
+# The DRF adapter (shared.auth.drf). The auth service does not need it.
+drf = ["djangorestframework>=3.16,<3.17"]
+# The MariaDB driver behind shared.wp_migration.source.
+wp = ["pymysql>=1.1"]
+
+[dependency-groups]
+test = ["pytest>=8", "django>=5.2,<5.3", "djangorestframework>=3.16,<3.17", "pymysql>=1.1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shared"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: needs the wp-db container (make wp-source)"]
+pythonpath = ["tests"]

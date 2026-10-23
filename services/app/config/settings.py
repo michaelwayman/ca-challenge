@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from ca_authlib.claims import AUDIENCE_APP, ISSUER
+from shared.auth.claims import AUDIENCE_APP, ISSUER
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

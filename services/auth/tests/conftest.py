@@ -2,8 +2,8 @@ import pytest
 from django.test import Client
 
 from accounts.models import Role, User
-from ca_authlib.claims import AUDIENCE_APP, ISSUER
-from ca_authlib.verify import JWKSClient, TokenVerifier
+from shared.auth.claims import AUDIENCE_APP, ISSUER
+from shared.auth.verify import JWKSClient, TokenVerifier
 
 PASSWORD = "correct horse battery staple"  # noqa: S105
 

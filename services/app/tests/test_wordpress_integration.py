@@ -8,9 +8,9 @@ from decimal import Decimal
 import pymysql
 import pytest
 
-from catalog.management.commands.wp_migration.importer import Importer
-from catalog.management.commands.wp_migration.source import MariaDBSource, connection_settings
+from catalog.management.commands.import_wordpress import Importer
 from catalog.models import Brand, Industry, Review, Reviewer
+from shared.wp_migration.source import MariaDBSource, connection_settings
 
 pytestmark = [pytest.mark.integration, pytest.mark.django_db]
 

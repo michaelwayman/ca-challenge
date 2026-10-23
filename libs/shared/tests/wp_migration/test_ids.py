@@ -1,6 +1,6 @@
 import uuid
 
-from ca_authlib.ids import user_id_from_wp_id
+from shared.wp_migration.ids import user_id_from_wp_id
 
 
 def test_same_wp_id_gives_same_uuid():

@@ -3,9 +3,9 @@ import time
 
 import pytest
 
-from ca_authlib.claims import AUDIENCE_APP, ISSUER, Introspection, Role, issue_claims
-from ca_authlib.testing import TestKey
 from catalog.models import Brand
+from shared.auth.claims import AUDIENCE_APP, ISSUER, Introspection, Role, issue_claims
+from shared.auth.testing import TestKey
 
 from .fake_auth import KEY
 

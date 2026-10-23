@@ -2,8 +2,8 @@ import pytest
 
 from accounts import keys
 from accounts.models import User
-from ca_authlib.claims import AUDIENCE_APP, Introspection, Role, encode_claims, issue_claims
-from ca_authlib.testing import TestKey
+from shared.auth.claims import AUDIENCE_APP, Introspection, Role, encode_claims, issue_claims
+from shared.auth.testing import TestKey
 
 from .conftest import login
 

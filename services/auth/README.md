@@ -12,7 +12,7 @@ publishes, so they keep working if it is down. It has its own database and a Dja
 | `GET /.well-known/jwks.json` | The public keys tokens are verified with |
 | `GET /healthz`, `/admin/` | Health check, and the admin (staff users only) |
 
-Token handling is shared with the main app through [`libs/ca_authlib`](../../libs/ca_authlib).
+Token handling is shared with the main app through [`libs/shared`](../../libs/shared) (`shared.auth`).
 
 ## Quickstart
 

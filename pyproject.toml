@@ -25,7 +25,7 @@ members = ["services/*", "libs/*"]
 [tool.ruff]
 line-length = 100
 target-version = "py313"
-src = ["services/app", "services/auth", "libs/ca_authlib/src"]
+src = ["services/app", "services/auth", "libs/shared/src"]
 extend-exclude = ["**/migrations/*.py"]
 
 [tool.ruff.lint]

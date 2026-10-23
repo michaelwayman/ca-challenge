@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from ca_authlib.claims import encode_claims, issue_claims
+from shared.auth.claims import encode_claims, issue_claims
 
 from . import keys
 from .models import RefreshToken, User

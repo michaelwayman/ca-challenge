@@ -1,7 +1,7 @@
 import pytest
 
-from ca_authlib import claims as claims_module
-from ca_authlib.claims import (
+from shared.auth import claims as claims_module
+from shared.auth.claims import (
     AUDIENCE_APP,
     Claims,
     Introspection,
@@ -10,7 +10,7 @@ from ca_authlib.claims import (
     encode_claims,
     issue_claims,
 )
-from ca_authlib.errors import InvalidClaims, InvalidIntrospection
+from shared.auth.errors import InvalidClaims, InvalidIntrospection
 
 
 class TestIssue:

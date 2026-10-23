@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from .models import SigningKey
 
-# How long the main app may keep using a JWKS document it fetched (ca_authlib's JWKSClient).
+# How long the main app may keep using a JWKS document it fetched (shared.auth.verify.JWKSClient).
 JWKS_CACHE_SECONDS = 300
 
 

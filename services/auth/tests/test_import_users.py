@@ -3,15 +3,10 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from accounts.management.commands.wp_migration.users import (
-    MariaDBUserSource,
-    WPUser,
-    connection_settings,
-    import_users,
-    roles_for,
-)
+from accounts.management.commands.import_wordpress_users import import_users, roles_for
 from accounts.models import User
-from ca_authlib.ids import user_id_from_wp_id
+from shared.wp_migration.ids import user_id_from_wp_id
+from shared.wp_migration.source import MariaDBSource, WPUser, connection_settings
 
 pytestmark = pytest.mark.django_db
 
@@ -140,11 +135,11 @@ def test_imports_the_real_wordpress_users():
     except pymysql.err.OperationalError:
         pytest.skip("wp-db is not running (make wp-source)")
 
-    report = import_users(MariaDBUserSource(**config))
+    report = import_users(MariaDBSource(**config))
 
     assert report.created == 9
     assert User.objects.get(username="admin").role_names() == ["editor", "reader"]
     assert User.objects.get(username="sarah_k").role_names() == ["reader"]
     assert User.objects.get(username="sarah_k").id == user_id_from_wp_id(2)
     assert not any(u.has_usable_password() for u in User.objects.all())
-    assert import_users(MariaDBUserSource(**config)).created == 0
+    assert import_users(MariaDBSource(**config)).created == 0

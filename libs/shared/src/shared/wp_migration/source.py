@@ -1,3 +1,10 @@
+"""Reads the WordPress site being migrated, straight from its MariaDB database.
+
+Both importers use it: the main app reads industries, brands, reviews and the authors' names;
+the auth service reads the users with their roles. Nothing here touches a Django model; each
+service's import command turns these rows into its own.
+"""
+
 import os
 import re
 from dataclasses import dataclass, field
@@ -27,7 +34,10 @@ class WPTerm:
 @dataclass(frozen=True)
 class WPUser:
     wp_id: int
+    login: str
+    email: str
     display_name: str
+    roles: tuple[str, ...] = ()  # WordPress roles, e.g. ("administrator",)
 
 
 @dataclass(frozen=True)
@@ -49,6 +59,12 @@ class WordPressSource(Protocol):
     def brand_industries(self) -> dict[int, list[int]]:
         """Brand wp_id -> industry term ids."""
         ...
+
+
+def parse_capabilities(serialized: str) -> tuple[str, ...]:
+    """The roles granted in a `wp_capabilities` value, which PHP serializes, e.g.
+    `a:1:{s:13:"administrator";b:1;}`. Roles stored with `b:0` are not granted."""
+    return tuple(re.findall(r's:\d+:"([^"]+)";b:1', serialized or ""))
 
 
 def connection_settings() -> dict:
@@ -115,9 +131,27 @@ class MariaDBSource:
 
     def users(self) -> list[WPUser]:
         rows = self._query(
-            f"SELECT ID, display_name FROM {self._table('users')} ORDER BY ID"  # noqa: S608
+            f"SELECT ID, user_login, user_email, display_name FROM {self._table('users')} "  # noqa: S608
+            "ORDER BY ID"
         )
-        return [WPUser(r["ID"], r["display_name"]) for r in rows]
+        capabilities = {
+            r["user_id"]: r["meta_value"] or ""
+            for r in self._query(
+                f"SELECT user_id, meta_value FROM {self._table('usermeta')} "  # noqa: S608
+                "WHERE meta_key = %s",
+                (f"{self._prefix}capabilities",),
+            )
+        }
+        return [
+            WPUser(
+                wp_id=r["ID"],
+                login=r["user_login"],
+                email=r["user_email"],
+                display_name=r["display_name"],
+                roles=parse_capabilities(capabilities.get(r["ID"], "")),
+            )
+            for r in rows
+        ]
 
     def brands(self) -> list[WPPost]:
         return self._posts("brand", BRAND_META_KEYS)

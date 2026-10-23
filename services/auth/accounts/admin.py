@@ -30,7 +30,7 @@ class ReadOnlyAdmin(admin.ModelAdmin):
 
 @admin.register(Role)
 class RoleAdmin(ReadOnlyAdmin):
-    """The roles are a fixed set the shared library defines (ca_authlib.claims.Role), so
+    """The roles are a fixed set the shared library defines (shared.auth.claims.Role), so
     they cannot be added, renamed or removed here; assign them to users instead."""
 
     list_display = ("name", "user_count")

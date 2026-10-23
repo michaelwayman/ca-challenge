@@ -5,8 +5,8 @@ import pytest
 
 from accounts import keys
 from accounts.models import RefreshToken, User
-from ca_authlib.claims import AUDIENCE_APP, ISSUER
-from ca_authlib.errors import TokenError
+from shared.auth.claims import AUDIENCE_APP, ISSUER
+from shared.auth.errors import TokenError
 
 from .conftest import PASSWORD, login, post
 
@@ -122,7 +122,7 @@ class TestTokenVersion:
     def test_the_issued_version_follows_the_audience_setting(
         self, api, make_user, settings, monkeypatch
     ):
-        from ca_authlib import claims as claims_module
+        from shared.auth import claims as claims_module
 
         monkeypatch.setitem(
             claims_module._ENCODERS, 2, lambda c: {**claims_module._encode_v1(c), "v": 2}
@@ -243,6 +243,6 @@ class TestRefresh:
 
 def test_the_roles_in_the_database_are_exactly_the_roles_the_library_defines(db):
     from accounts.models import Role
-    from ca_authlib.claims import Role as LibraryRole
+    from shared.auth.claims import Role as LibraryRole
 
     assert set(Role.objects.values_list("name", flat=True)) == {r.value for r in LibraryRole}

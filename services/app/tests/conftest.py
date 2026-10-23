@@ -1,8 +1,8 @@
 import httpx
 import pytest
 
-from ca_authlib import drf
 from catalog import auth
+from shared.auth import drf
 
 from .fake_auth import FakeAuthService
 

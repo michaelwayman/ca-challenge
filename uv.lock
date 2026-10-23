@@ -5,9 +5,9 @@ requires-python = ">=3.13"
 [manifest]
 members = [
     "brand-reviews",
-    "ca-authlib",
     "reviews-app",
     "reviews-auth",
+    "shared",
 ]
 
 [[package]]
@@ -55,40 +55,6 @@ dev = [
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-django", specifier = ">=4.9" },
     { name = "ruff", specifier = ">=0.9" },
-]
-
-[[package]]
-name = "ca-authlib"
-version = "0.1.0"
-source = { editable = "libs/ca_authlib" }
-dependencies = [
-    { name = "pyjwt", extra = ["crypto"] },
-]
-
-[package.optional-dependencies]
-drf = [
-    { name = "djangorestframework" },
-]
-
-[package.dev-dependencies]
-test = [
-    { name = "django" },
-    { name = "djangorestframework" },
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "djangorestframework", marker = "extra == 'drf'", specifier = ">=3.16,<3.17" },
-    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.9" },
-]
-provides-extras = ["drf"]
-
-[package.metadata.requires-dev]
-test = [
-    { name = "django", specifier = ">=5.2,<5.3" },
-    { name = "djangorestframework", specifier = ">=3.16,<3.17" },
-    { name = "pytest", specifier = ">=8" },
 ]
 
 [[package]]
@@ -859,24 +825,22 @@ name = "reviews-app"
 version = "0.1.0"
 source = { virtual = "services/app" }
 dependencies = [
-    { name = "ca-authlib", extra = ["drf"] },
     { name = "django" },
     { name = "djangorestframework" },
     { name = "httpx" },
     { name = "nh3" },
     { name = "psycopg", extra = ["binary"] },
-    { name = "pymysql" },
+    { name = "shared", extra = ["drf", "wp"] },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "ca-authlib", extras = ["drf"], editable = "libs/ca_authlib" },
     { name = "django", specifier = ">=5.2,<5.3" },
     { name = "djangorestframework", specifier = ">=3.16,<3.17" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "nh3", specifier = ">=0.2" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2,<4" },
-    { name = "pymysql", specifier = ">=1.1" },
+    { name = "shared", extras = ["drf", "wp"], editable = "libs/shared" },
 ]
 
 [[package]]
@@ -884,20 +848,18 @@ name = "reviews-auth"
 version = "0.1.0"
 source = { virtual = "services/auth" }
 dependencies = [
-    { name = "ca-authlib" },
     { name = "django" },
     { name = "djangorestframework" },
     { name = "psycopg", extra = ["binary"] },
-    { name = "pymysql" },
+    { name = "shared", extra = ["wp"] },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "ca-authlib", editable = "libs/ca_authlib" },
     { name = "django", specifier = ">=5.2,<5.3" },
     { name = "djangorestframework", specifier = ">=3.16,<3.17" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2,<4" },
-    { name = "pymysql", specifier = ">=1.1" },
+    { name = "shared", extras = ["wp"], editable = "libs/shared" },
 ]
 
 [[package]]
@@ -923,6 +885,46 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0a/e8/1e186578076aff7a80735f625005fde678412ab609cd323ed182eb7d6b87/ruff-0.17.1-py3-none-win32.whl", hash = "sha256:1de0030a8aa78c65c5fecb84b2e5c390ac684c0452875a02afc7c083d49a496a", size = 9895093, upload-time = "2026-10-15T15:23:10.582Z" },
     { url = "https://files.pythonhosted.org/packages/6a/2e/da3d9589bae8e8b58f3a48bd5bc0b980232fb14a83bf02c3be7660f87c1b/ruff-0.17.1-py3-none-win_amd64.whl", hash = "sha256:5df76f16580fab58d0f6c98a3ac254a4abceb7b2489b8b678335869cff77b3d7", size = 10097955, upload-time = "2026-10-15T15:23:13.309Z" },
     { url = "https://files.pythonhosted.org/packages/df/c9/0f2a4dea06a5e12c1191ee3d96b1e1233797d0d5e18f97a2b909a95a9836/ruff-0.17.1-py3-none-win_arm64.whl", hash = "sha256:42400b9a6ff8515ff27796f07f92e0195be011c86e81e381606f58ea5502fef4", size = 9853542, upload-time = "2026-10-15T15:23:16.05Z" },
+]
+
+[[package]]
+name = "shared"
+version = "0.2.0"
+source = { editable = "libs/shared" }
+dependencies = [
+    { name = "pyjwt", extra = ["crypto"] },
+]
+
+[package.optional-dependencies]
+drf = [
+    { name = "djangorestframework" },
+]
+wp = [
+    { name = "pymysql" },
+]
+
+[package.dev-dependencies]
+test = [
+    { name = "django" },
+    { name = "djangorestframework" },
+    { name = "pymysql" },
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "djangorestframework", marker = "extra == 'drf'", specifier = ">=3.16,<3.17" },
+    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.9" },
+    { name = "pymysql", marker = "extra == 'wp'", specifier = ">=1.1" },
+]
+provides-extras = ["drf", "wp"]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "django", specifier = ">=5.2,<5.3" },
+    { name = "djangorestframework", specifier = ">=3.16,<3.17" },
+    { name = "pymysql", specifier = ">=1.1" },
+    { name = "pytest", specifier = ">=8" },
 ]
 
 [[package]]

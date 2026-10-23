@@ -2,9 +2,9 @@ from datetime import UTC, datetime
 
 import pytest
 
-from ca_authlib.ids import user_id_from_wp_id
-from catalog.management.commands.wp_migration.importer import Importer, PruneRefused
+from catalog.management.commands.import_wordpress import Importer, PruneRefused
 from catalog.models import Brand, Industry, Review, Reviewer
+from shared.wp_migration.ids import user_id_from_wp_id
 
 from .fake_source import (
     FakeSource,

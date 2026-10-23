@@ -10,7 +10,7 @@ WORKDIR /workspace
 
 # Dependencies first so this layer caches until a manifest changes.
 COPY pyproject.toml uv.lock .python-version ./
-COPY libs/ca_authlib/pyproject.toml libs/ca_authlib/
+COPY libs/shared/pyproject.toml libs/shared/
 COPY services/app/pyproject.toml services/app/
 COPY services/auth/pyproject.toml services/auth/
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -18,7 +18,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Then source. Workspace members install editable, so a bind-mounted ./libs
 # gives live edits to the shared lib in dev.
-COPY libs/ca_authlib libs/ca_authlib
+COPY libs/shared libs/shared
 COPY services/auth services/auth
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --package reviews-auth

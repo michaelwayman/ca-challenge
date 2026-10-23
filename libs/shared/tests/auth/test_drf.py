@@ -5,11 +5,11 @@ from rest_framework.response import Response
 from rest_framework.test import APIRequestFactory
 from rest_framework.views import APIView
 
-from ca_authlib import drf
-from ca_authlib.claims import AUDIENCE_APP, ISSUER, Introspection, Role, issue_claims
-from ca_authlib.drf import JWTAuthentication, require_role
-from ca_authlib.errors import IntrospectionUnavailable
-from ca_authlib.testing import TestKey, jwks_document
+from shared.auth import drf
+from shared.auth.claims import AUDIENCE_APP, ISSUER, Introspection, Role, issue_claims
+from shared.auth.drf import JWTAuthentication, require_role
+from shared.auth.errors import IntrospectionUnavailable
+from shared.auth.testing import TestKey, jwks_document
 
 factory = APIRequestFactory()
 

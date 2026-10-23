@@ -5,10 +5,10 @@ import time
 import jwt
 import pytest
 
-from ca_authlib.claims import AUDIENCE_APP, ISSUER, Role, encode_claims, issue_claims
-from ca_authlib.errors import InvalidClaims, KeysUnavailable, TokenError
-from ca_authlib.testing import TestKey, jwks_document
-from ca_authlib.verify import JWKSClient, TokenVerifier, http_fetch
+from shared.auth.claims import AUDIENCE_APP, ISSUER, Role, encode_claims, issue_claims
+from shared.auth.errors import InvalidClaims, KeysUnavailable, TokenError
+from shared.auth.testing import TestKey, jwks_document
+from shared.auth.verify import JWKSClient, TokenVerifier, http_fetch
 
 
 class Clock:

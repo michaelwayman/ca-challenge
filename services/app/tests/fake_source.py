@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from ca_authlib.ids import user_id_from_wp_id  # noqa: F401  (re-exported for tests)
-from catalog.management.commands.wp_migration.source import WPPost, WPTerm, WPUser
+from shared.wp_migration.ids import user_id_from_wp_id  # noqa: F401  (re-exported for tests)
+from shared.wp_migration.source import WPPost, WPTerm, WPUser
 
 
 class FakeSource:
@@ -33,7 +33,7 @@ def term(wp_id=2, name="Insurance", slug="insurance"):
 
 
 def user(wp_id=2, display_name="Sarah K."):
-    return WPUser(wp_id, display_name)
+    return WPUser(wp_id, f"user{wp_id}", f"user{wp_id}@example.com", display_name)
 
 
 def brand_post(wp_id=7, slug="acme", title="Acme", content="<p>" + "word " * 40 + "</p>", **meta):

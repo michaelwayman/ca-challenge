@@ -4,8 +4,8 @@ import json
 
 import httpx
 
-from ca_authlib.claims import Introspection
-from ca_authlib.testing import TestKey, jwks_document
+from shared.auth.claims import Introspection
+from shared.auth.testing import TestKey, jwks_document
 
 KEY = TestKey("k1")
 

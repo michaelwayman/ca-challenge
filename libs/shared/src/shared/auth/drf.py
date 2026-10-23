@@ -4,8 +4,8 @@ Needs the `drf` extra. Configured through `settings.CA_AUTH`:
 
     CA_AUTH = {
         "JWKS_URL": "http://auth:8001/.well-known/jwks.json",
-        "ISSUER": ca_authlib.claims.ISSUER,
-        "AUDIENCE": ca_authlib.claims.AUDIENCE_APP,
+        "ISSUER": shared.auth.claims.ISSUER,
+        "AUDIENCE": shared.auth.claims.AUDIENCE_APP,
         "ACCEPTED_TOKEN_VERSIONS": [1],
         # Dotted path of a callable (token: str) -> Introspection. Only needed by
         # endpoints that use require_role(..., fresh=True). The client lives in the

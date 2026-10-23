@@ -29,8 +29,9 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser):
     """The identity of record. The main app keeps only this id, never credentials."""
 
-    # Users migrated from WordPress get uuid5 of their WordPress id (ca_authlib.ids), so a re-import
-    # finds them again and the main app can compute the same id; everyone else gets a random uuid4.
+    # Users migrated from WordPress get uuid5 of their WordPress id (shared.wp_migration.ids), so
+    # a re-import finds them again and the main app can compute the same id; everyone else gets a
+    # random uuid4.
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=150, unique=True)
     email = models.EmailField(blank=True)
