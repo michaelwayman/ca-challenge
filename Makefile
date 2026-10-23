@@ -1,4 +1,4 @@
-.PHONY: setup up down reset logs wp-source css css-watch js js-watch dev-watch assets demo-auth demo-auth-py lint format test test-py test-fe
+.PHONY: setup up down reset logs wp-source css css-watch js js-watch dev-watch assets release-shared demo-auth demo-auth-py lint format test test-py test-fe
 
 setup:
 	uv sync --all-packages
@@ -11,6 +11,11 @@ up:
 	docker compose --profile migration-source up -d --build --wait db-app db-auth app auth wp-db
 	docker compose exec -T app python manage.py import_wordpress
 	docker compose exec -T auth python manage.py import_wordpress_users
+
+# Bump, check, commit, tag and push a release of libs/shared (scripts/release_shared.py).
+# BUMP is patch, minor, major or X.Y.Z; ARGS passes options, e.g. ARGS=--dry-run or ARGS=--tag-current.
+release-shared:
+	uv run --quiet python scripts/release_shared.py $(BUMP) $(ARGS)
 
 down:
 	docker compose down
@@ -69,6 +74,7 @@ test: test-py test-fe
 
 test-py:
 	uv run --package shared --group test pytest libs/shared
+	uv run pytest scripts/tests
 	uv run --package reviews-app pytest services/app
 	uv run --package reviews-auth pytest services/auth
 

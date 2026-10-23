@@ -977,6 +977,7 @@ test = [
     { name = "djangorestframework" },
     { name = "pymysql" },
     { name = "pytest" },
+    { name = "pytest-django" },
 ]
 
 [package.metadata]
@@ -993,6 +994,7 @@ test = [
     { name = "djangorestframework", specifier = ">=3.16,<3.17" },
     { name = "pymysql", specifier = ">=1.1" },
     { name = "pytest", specifier = ">=8" },
+    { name = "pytest-django", specifier = ">=4.9" },
 ]
 
 [[package]]

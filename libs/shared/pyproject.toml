@@ -16,7 +16,13 @@ drf = ["djangorestframework>=3.16,<3.17"]
 wp = ["pymysql>=1.1"]
 
 [dependency-groups]
-test = ["pytest>=8", "django>=5.2,<5.3", "djangorestframework>=3.16,<3.17", "pymysql>=1.1"]
+test = [
+    "pytest>=8",
+    "pytest-django>=4.9",
+    "django>=5.2,<5.3",
+    "djangorestframework>=3.16,<3.17",
+    "pymysql>=1.1",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/shared"]
