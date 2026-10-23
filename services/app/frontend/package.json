@@ -19,6 +19,7 @@
     "test:watch": "vitest",
     "build:css": "sass scss/main.scss ../static/css/site.css --style=compressed --no-source-map",
     "dev:css": "sass scss/main.scss ../static/css/site.css --watch",
+    "dev:js": "vite build --watch",
     "check:parity": "node scripts/check-parity.mjs",
     "build:js": "tsc --noEmit && vite build"
   },

@@ -37,6 +37,7 @@ uv run pytest              # tests
 ```bash
 python manage.py import_wordpress [--dry-run] [--prune]   # the migration; safe to re-run
 make js                    # rebuild the React bundle after changing frontend/src
+make dev-watch             # rebuild the CSS and the bundle on every save (or make css-watch / make js-watch)
 cd frontend && pnpm dev    # the component on :5173 with hot reload
 ```
 

@@ -1,4 +1,4 @@
-.PHONY: setup up down reset logs wp-source css css-watch js assets demo-auth demo-auth-py lint format test test-py test-fe
+.PHONY: setup up down reset logs wp-source css css-watch js js-watch dev-watch assets demo-auth demo-auth-py lint format test test-py test-fe
 
 setup:
 	uv sync --all-packages
@@ -32,6 +32,14 @@ css-watch:
 
 js:
 	cd services/app/frontend && pnpm build:js
+
+# Rebuilds the bundle on every save (no type check; `make js` and `make lint` run tsc).
+js-watch:
+	cd services/app/frontend && pnpm dev:js
+
+# Rebuild the CSS and the React bundle on every change; a hard refresh shows them.
+dev-watch:
+	$(MAKE) -j2 css-watch js-watch
 
 assets: css js
 

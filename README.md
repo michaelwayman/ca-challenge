@@ -28,7 +28,9 @@ make up      # builds, starts everything, then runs the migration (see below)
 
 **React component.** `cd services/app/frontend && pnpm install && pnpm dev` serves it on
 <http://localhost:5173>, proxying `/api` to the app. `make assets` rebuilds the bundle and CSS into
-`services/app/static/`, which overrides the image's copy.
+`services/app/static/`, which overrides the image's copy. While the stack runs, `make dev-watch` (or `make css-watch` /
+`make js-watch`) rebuilds them there on every save, so a hard refresh shows the change; it needs `pnpm install`
+once (`make setup`).
 
 **SCSS.** The source is `services/app/frontend/scss/` (entry `main.scss`). Compile it with
 `cd services/app/frontend && pnpm build:css` (that is `sass scss/main.scss ../static/css/site.css
