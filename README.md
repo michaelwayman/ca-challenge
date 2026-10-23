@@ -74,19 +74,23 @@ service cannot be asked for the caller's current roles. `PUT` and `DELETE` are 4
 ## Get a token and call the protected endpoint
 
 ```bash
-# Users are imported with unusable passwords; set one for the WordPress admin (an editor).
-docker compose exec auth python manage.py set_dev_password admin admin-pass
-
+# Users keep their WordPress passwords: admin/admin (an editor), and changeme for the reviewers (readers).
 # Log in: a 10-minute access token and a single-use refresh token.
 TOKEN=$(curl -s -X POST localhost:8001/api/auth/v1/token/ \
   -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"admin-pass"}' | python3 -c 'import sys,json; print(json.load(sys.stdin)["access_token"])')
+  -d '{"username":"admin","password":"admin"}' | python3 -c 'import sys,json; print(json.load(sys.stdin)["access_token"])')
 
 # Edit a brand: 401 without a token, 403 for a reader, 200 for an editor.
 curl -s -X PATCH localhost:8000/api/brands/acme-insurance/ \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"description": "<p>A new description</p>"}'
 ```
+
+The WordPress password hashes are imported as they are, verified at login by
+`services/auth/accounts/hashers.py`, and replaced by a Django (PBKDF2) hash on each user's first successful login.
+WordPress 6.8+ and plain bcrypt hashes are supported; older phpass (`$P$`) hashes are not, and those users are
+imported without a usable password (the import reports them). `set_dev_password` still sets any password in
+development.
 
 `make demo-auth` walks through the whole flow, including a demotion and the auth service being down; `make demo-auth-py` runs the same story in Python (`scripts/demo_auth.py`), over HTTP only.
 

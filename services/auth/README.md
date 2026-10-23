@@ -21,9 +21,8 @@ From the repository root, with Docker only:
 ```bash
 cp .env.example .env
 make up                    # starts auth on :8001 (and the app on :8000), imports the users
-docker compose exec auth python manage.py set_dev_password admin admin-pass
 curl -s -X POST localhost:8001/api/auth/v1/token/ \
-  -H 'Content-Type: application/json' -d '{"username":"admin","password":"admin-pass"}'
+  -H 'Content-Type: application/json' -d '{"username":"admin","password":"admin"}'   # the WordPress password
 ```
 
 On the host, with [uv](https://docs.astral.sh/uv/) (database still in Docker):
@@ -39,7 +38,7 @@ uv run pytest              # tests
 ## Useful commands
 
 ```bash
-python manage.py import_wordpress_users                  # WordPress users, with unusable passwords; safe to re-run
+python manage.py import_wordpress_users                  # WordPress users with their WordPress passwords; safe to re-run
 python manage.py set_dev_password <username> <password>  # development only (refuses unless DEBUG is on)
 python manage.py rotate_signing_key [--retire-old]       # add a key; --retire-old retires stale ones later
 python manage.py purge_tokens [--dry-run]                # delete expired refresh tokens and long-retired keys
