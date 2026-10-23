@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "shared"
-version = "0.2.0"
+version = "0.3.0"
 description = "Code both services use: token claims, verification and permission checks (auth), and reading the WordPress source (wp_migration)."
 requires-python = ">=3.13"
 dependencies = ["pyjwt[crypto]>=2.9"]
