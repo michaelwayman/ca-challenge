@@ -13,10 +13,7 @@ from .models import RefreshToken, User
 
 
 def issue_access_token(user: User, audience: str) -> str:
-    version = settings.AUDIENCES[audience]["token_version"]
-    claims = issue_claims(
-        str(user.id), user.role_names(), audience, settings.ACCESS_TOKEN_TTL, version=version
-    )
+    claims = issue_claims(str(user.id), user.role_names(), audience, settings.ACCESS_TOKEN_TTL)
     return keys.sign(encode_claims(claims))
 
 

@@ -76,8 +76,7 @@ def _verifier() -> TokenVerifier:
     return TokenVerifier(
         JWKSClient(keys.jwks_document, ttl=5, min_interval=0),
         issuer=ISSUER,
-        audience=list(settings.AUDIENCES),
-        accepted_versions={a["token_version"] for a in settings.AUDIENCES.values()},
+        audience=sorted(settings.AUDIENCES),
     )
 
 

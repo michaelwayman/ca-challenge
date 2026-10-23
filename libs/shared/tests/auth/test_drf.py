@@ -25,7 +25,6 @@ def auth_settings(settings):
         "JWKS_URL": "http://auth.test/.well-known/jwks.json",
         "ISSUER": ISSUER,
         "AUDIENCE": AUDIENCE_APP,
-        "ACCEPTED_TOKEN_VERSIONS": [1],
         "INTROSPECTOR": "test_drf.fake_introspect",
     }
     return settings

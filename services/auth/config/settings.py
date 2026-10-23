@@ -91,11 +91,8 @@ PASSWORD_HASHERS = [
 ACCESS_TOKEN_TTL = 600  # seconds
 REFRESH_TOKEN_TTL = 7 * 24 * 3600
 
-# Services that tokens may be issued for, and which token version each one is sent.
-# Moving a service to a new version is changing its number here (see DECISIONS.md D8d).
-AUDIENCES = {
-    AUDIENCE_APP: {"token_version": int(os.environ.get("AUTH_TOKEN_VERSION_APP", "1"))},
-}
+# The services tokens may be issued for (each token's `aud` claim).
+AUDIENCES = {AUDIENCE_APP}
 
 # Shared with the services allowed to call /introspect/. A dev default so compose works
 # out of the box; set a real one anywhere else.

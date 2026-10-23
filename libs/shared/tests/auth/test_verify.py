@@ -6,7 +6,7 @@ import jwt
 import pytest
 
 from shared.auth.claims import AUDIENCE_APP, ISSUER, Role, encode_claims, issue_claims
-from shared.auth.errors import InvalidClaims, KeysUnavailable, TokenError
+from shared.auth.errors import KeysUnavailable, TokenError
 from shared.auth.testing import TestKey, jwks_document
 from shared.auth.verify import JWKSClient, TokenVerifier, http_fetch
 
@@ -77,7 +77,6 @@ class TestValidTokens:
         assert result.sub == "user-1"
         assert result.roles == ("editor", "reader")
         assert result.aud == AUDIENCE_APP
-        assert result.v == 1
 
 
 class TestRejectedTokens:
@@ -144,18 +143,10 @@ class TestRejectedTokens:
         with pytest.raises(TokenError):
             make_verifier(issuer, clock).verify(key.sign(payload))
 
-    def test_missing_version_claim(self, key, issuer, clock):
-        payload = encode_claims(claims())
-        del payload["v"]
+    def test_an_unknown_extra_claim_is_ignored(self, key, issuer, clock):
+        token = key.sign(encode_claims(claims()) | {"v": 1, "permissions": []})
 
-        with pytest.raises(InvalidClaims):
-            make_verifier(issuer, clock).verify(key.sign(payload))
-
-    def test_unaccepted_version(self, key, issuer, clock):
-        payload = encode_claims(claims()) | {"v": 2}
-
-        with pytest.raises(InvalidClaims):
-            make_verifier(issuer, clock, accepted_versions=[1]).verify(key.sign(payload))
+        assert make_verifier(issuer, clock).verify(token).sub == "user-1"
 
 
 class TestKeyCaching:

@@ -190,7 +190,7 @@ class TestWhoMayEdit:
 
     def test_a_token_from_another_issuer_is_a_401(self, client, brand, auth_service):
         payload = {
-            **{"iss": "evil", "aud": AUDIENCE_APP, "sub": "u", "roles": ["editor"], "v": 1},
+            **{"iss": "evil", "aud": AUDIENCE_APP, "sub": "u", "roles": ["editor"]},
             "iat": int(time.time()),
             "exp": int(time.time()) + 600,
             "jti": "x",
@@ -198,7 +198,10 @@ class TestWhoMayEdit:
 
         assert patch(client, {"description": "New"}, KEY.sign(payload)).status_code == 401
 
-    def test_a_token_without_a_version_is_a_401(self, client, brand, auth_service):
+    def test_a_token_with_a_claim_the_app_does_not_know_is_accepted(
+        self, client, brand, auth_service
+    ):
+        # Expand/contract: the auth service may add a claim before the app reads it.
         payload = {
             "iss": ISSUER,
             "aud": AUDIENCE_APP,
@@ -207,7 +210,20 @@ class TestWhoMayEdit:
             "iat": int(time.time()),
             "exp": int(time.time()) + 600,
             "jti": "x",
+            "permissions": ["brand:edit"],
         }
+
+        assert patch(client, {"description": "New"}, KEY.sign(payload)).status_code == 200
+
+    def test_a_token_missing_a_required_claim_is_a_401(self, client, brand, auth_service):
+        payload = {
+            "iss": ISSUER,
+            "aud": AUDIENCE_APP,
+            "sub": "u",
+            "jti": "x",
+            "iat": int(time.time()),
+            "exp": int(time.time()) + 600,
+        }  # no roles
 
         assert patch(client, {"description": "New"}, KEY.sign(payload)).status_code == 401
 

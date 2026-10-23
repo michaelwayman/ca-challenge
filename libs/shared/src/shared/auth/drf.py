@@ -6,7 +6,6 @@ Needs the `drf` extra. Configured through `settings.CA_AUTH`:
         "JWKS_URL": "http://auth:8001/.well-known/jwks.json",
         "ISSUER": shared.auth.claims.ISSUER,
         "AUDIENCE": shared.auth.claims.AUDIENCE_APP,
-        "ACCEPTED_TOKEN_VERSIONS": [1],
         # Dotted path of a callable (token: str) -> Introspection. Only needed by
         # endpoints that use require_role(..., fresh=True). The client lives in the
         # service, because only that service calls the auth API.
@@ -54,7 +53,6 @@ def get_verifier() -> TokenVerifier:
         JWKSClient(http_fetch(config["JWKS_URL"])),
         issuer=config["ISSUER"],
         audience=config["AUDIENCE"],
-        accepted_versions=config.get("ACCEPTED_TOKEN_VERSIONS", (1,)),
     )
 
 

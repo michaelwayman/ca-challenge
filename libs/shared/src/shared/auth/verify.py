@@ -89,14 +89,12 @@ class TokenVerifier:
         *,
         issuer: str,
         audience: str | Iterable[str],
-        accepted_versions: Iterable[int] = (1,),
         leeway: int = 10,
         algorithms: Iterable[str] = ("EdDSA",),
     ):
         self._keys = keys
         self._issuer = issuer
         self._audience = audience if isinstance(audience, str) else list(audience)
-        self._accepted_versions = tuple(accepted_versions)
         self._leeway = leeway
         # An explicit allowlist is what stops `alg: none` and key-confusion tokens.
         self._algorithms = list(algorithms)
@@ -124,4 +122,4 @@ class TokenVerifier:
             )
         except jwt.PyJWTError as exc:
             raise TokenError(str(exc)) from exc
-        return decode_claims(payload, self._accepted_versions)
+        return decode_claims(payload)

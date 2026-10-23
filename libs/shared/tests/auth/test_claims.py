@@ -1,9 +1,7 @@
 import pytest
 
-from shared.auth import claims as claims_module
 from shared.auth.claims import (
     AUDIENCE_APP,
-    Claims,
     Introspection,
     Role,
     decode_claims,
@@ -18,7 +16,7 @@ class TestIssue:
         a = issue_claims("u", ["reader", "editor"], AUDIENCE_APP, 600, now=1000)
         b = issue_claims("u", ["reader", "editor"], AUDIENCE_APP, 600, now=1000)
 
-        assert (a.iat, a.exp, a.v) == (1000, 1600, 1)
+        assert (a.iat, a.exp) == (1000, 1600)
         assert a.roles == ("editor", "reader")
         assert a.jti != b.jti
 
@@ -31,62 +29,17 @@ class TestIssue:
 
 
 class TestRoundTrip:
-    def test_v1_round_trips(self):
+    def test_round_trips(self):
         claims = issue_claims("u", [Role.EDITOR], AUDIENCE_APP, 600, now=1000)
 
-        assert decode_claims(encode_claims(claims), accepted_versions=[1]) == claims
+        assert decode_claims(encode_claims(claims)) == claims
 
-    def test_payload_carries_the_version(self):
-        assert encode_claims(issue_claims("u", [], AUDIENCE_APP, 60))["v"] == 1
+    def test_claims_it_does_not_know_are_ignored(self):
+        """Expand/contract relies on this: a new claim can be added before readers know it."""
+        claims = issue_claims("u", [Role.READER], AUDIENCE_APP, 60)
+        payload = encode_claims(claims) | {"permissions": ["brand:edit"], "v": 1}
 
-
-class TestVersionDispatch:
-    def test_missing_version_is_rejected(self):
-        payload = encode_claims(issue_claims("u", [], AUDIENCE_APP, 60))
-        del payload["v"]
-
-        with pytest.raises(InvalidClaims, match="no version"):
-            decode_claims(payload, accepted_versions=[1])
-
-    @pytest.mark.parametrize("version", ["1", None, True, 1.0, 99])
-    def test_unknown_or_malformed_version_is_rejected(self, version):
-        payload = encode_claims(issue_claims("u", [], AUDIENCE_APP, 60)) | {"v": version}
-
-        with pytest.raises(InvalidClaims):
-            decode_claims(payload, accepted_versions=[1])
-
-    def test_a_known_version_the_service_does_not_accept_is_rejected(self, monkeypatch):
-        monkeypatch.setitem(claims_module._DECODERS, 2, lambda p: p)
-        payload = encode_claims(issue_claims("u", [], AUDIENCE_APP, 60)) | {"v": 2}
-
-        with pytest.raises(InvalidClaims, match="unsupported"):
-            decode_claims(payload, accepted_versions=[1])
-
-    def test_issuer_and_verifier_can_move_to_v2_independently(self, monkeypatch):
-        """Auth can emit v2 while a service accepting [1, 2] keeps working with both."""
-        monkeypatch.setitem(
-            claims_module._ENCODERS,
-            2,
-            lambda c: {**claims_module._encode_v1(c), "v": 2, "extra": 1},
-        )
-        monkeypatch.setitem(
-            claims_module._DECODERS,
-            2,
-            lambda p: Claims(
-                p["sub"], tuple(p["roles"]), p["iss"], p["aud"], p["iat"], p["exp"], p["jti"], 2
-            ),
-        )
-        v1 = issue_claims("u", [Role.READER], AUDIENCE_APP, 60)
-        v2 = issue_claims("u", [Role.READER], AUDIENCE_APP, 60, version=2)
-
-        assert decode_claims(encode_claims(v1), [1, 2]).v == 1
-        assert decode_claims(encode_claims(v2), [1, 2]).v == 2
-        with pytest.raises(InvalidClaims):
-            decode_claims(encode_claims(v2), [1])  # a service that has not upgraded
-
-    def test_encoding_an_unregistered_version_fails(self):
-        with pytest.raises(InvalidClaims):
-            encode_claims(issue_claims("u", [], AUDIENCE_APP, 60, version=7))
+        assert decode_claims(payload) == claims
 
 
 class TestDecodeValidation:
@@ -106,7 +59,7 @@ class TestDecodeValidation:
         payload = encode_claims(issue_claims("u", [], AUDIENCE_APP, 60)) | change
 
         with pytest.raises(InvalidClaims):
-            decode_claims(payload, accepted_versions=[1])
+            decode_claims(payload)
 
     @pytest.mark.parametrize("missing", ["sub", "roles", "jti", "iss", "aud", "iat", "exp"])
     def test_every_claim_is_required(self, missing):
@@ -114,7 +67,7 @@ class TestDecodeValidation:
         del payload[missing]
 
         with pytest.raises(InvalidClaims, match=missing):
-            decode_claims(payload, accepted_versions=[1])
+            decode_claims(payload)
 
 
 class TestIntrospection:
