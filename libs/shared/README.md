@@ -83,45 +83,51 @@ uv run --package shared --group test pytest libs/shared
 
 ## Publish a tagged version
 
-The version is in two places: `version` in `pyproject.toml` and `__version__` in `src/shared/__init__.py`.
+From the repository root, on an up-to-date `main` with a clean tree:
 
 ```bash
-# 1. Bump both, then run the tests (above).
-# 2. Commit and tag. The tag is shared/vX.Y.Z, so the library can be released on its own.
-git commit -am "shared 0.3.0"
-git tag shared/v0.3.0
-git push origin main shared/v0.3.0
-
-# 3. Optional: build a wheel (dist/shared-0.3.0-py3-none-any.whl) to attach to a release or upload to an index.
-uv build --package shared
+make release-shared BUMP=patch                 # or minor, major, or an explicit X.Y.Z
+make release-shared BUMP=minor ARGS=--dry-run  # check and show; change nothing
+make release-shared ARGS=--tag-current         # tag the current version without bumping
 ```
 
-Follow semver. While the version is 0.x, a breaking change bumps the minor version, as 0.2.0 did when the
-modules moved into `auth` and `wp_migration`. That covers a breaking change to the Python API and dropping
-support for a token version. This repository has no publishing pipeline yet, so the tag and the wheel are made
-by hand.
+`scripts/release_shared.py` does the whole release:
+1. Writes the new version to `pyproject.toml` and `src/shared/__init__.py`.
+2. Moves a service's `shared` range when it no longer admits the new version. Inside this workspace both
+   services must follow, or `uv lock` fails.
+3. Runs `uv lock` and the library's tests.
+4. Shows what it will do and asks.
+5. Commits `shared X.Y.Z`, tags `shared/vX.Y.Z` and pushes `main` and the tag together.
+
+Add `ARGS=--build` to also build the wheel into `dist/`. If any check fails or you answer no, every file is put
+back.
+
+Follow semver. While the version is 0.x, a breaking change bumps the minor version, as 0.2.0 did when the modules
+moved into `auth` and `wp_migration`. That covers a breaking change to the Python API and dropping support for a
+token version.
 
 ## Use a tagged version from another project
 
-Depend on a version range, and pin the exact tag in `[tool.uv.sources]` (replace the URL with wherever this
-repository is hosted):
+Depend on a version range, and pin the exact tag in `[tool.uv.sources]`. The repository is private, so the
+machine (or CI job, or Docker build) needs SSH access to it:
 
 ```toml
 # pyproject.toml
 dependencies = ["shared[drf,wp]>=0.2,<0.3"]
 
 [tool.uv.sources]
-shared = { git = "https://github.com/<org>/<repo>", subdirectory = "libs/shared", tag = "shared/v0.2.0" }
+shared = { git = "ssh://git@github.com/michaelwayman/ca-challenge.git", subdirectory = "libs/shared", tag = "shared/v0.2.0" }
 ```
 
 Then `uv lock` resolves the tag to a commit, and the lockfile keeps it. To take a new release, change the tag and
 the range, and run `uv lock` again. Other ways to install the same tag:
 
 ```bash
-pip install "shared[drf] @ git+https://github.com/<org>/<repo>@shared/v0.2.0#subdirectory=libs/shared"
+pip install "shared[drf] @ git+ssh://git@github.com/michaelwayman/ca-challenge.git@shared/v0.2.0#subdirectory=libs/shared"
 uv add ./shared-0.2.0-py3-none-any.whl      # from a built wheel
 ```
 
-Inside this repository the services use the workspace copy (`shared = { workspace = true }`), the main app with
-`shared[drf,wp]>=0.2,<0.3` and the auth service with `shared[wp]>=0.2,<0.3`. So both always run the library's
-current source; the range is checked when `uv lock` runs.
+Inside this repository the services use the workspace copy (`shared = { workspace = true }`): the main app with
+`shared[drf,wp]>=0.2,<0.3`, the auth service with `shared[wp]>=0.2,<0.3`. By default both run the working copy,
+and Docker bind-mounts it, so edits reach both containers at once. Either service can run a tagged release instead
+(`make up AUTH_SHARED=shared/v0.2.0`; see the main README).

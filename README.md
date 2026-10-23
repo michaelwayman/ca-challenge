@@ -102,10 +102,32 @@ development.
 uv run --package shared --group test pytest libs/shared   # no service needed
 ```
 
-To release: bump `version` in `libs/shared/pyproject.toml`, tag `shared/vX.Y.Z`, and build with
-`uv build --package shared`. Each service depends on a range (`shared[...]>=0.2,<0.3`), so it takes the new
-version by widening that range and running `uv lock`, and can lag the other. Only the workspace install is wired
-here (there is no publishing pipeline), so in practice both services run the library's current source.
+**Releasing.** `make release-shared BUMP=patch` (or `minor`, `major`, `X.Y.Z`) runs `scripts/release_shared.py`:
+it bumps the version, relocks, runs the library's tests, then commits, tags `shared/vX.Y.Z` and pushes. Add
+`ARGS=--dry-run` to see what it would do. Other projects then depend on the tag (see
+[libs/shared/README.md](libs/shared/README.md)).
+
+**Which library each service runs.** By default both services run the working copy of `libs/shared`. It is
+bind-mounted, so an edit reaches both containers at once, and the two can be developed together. Either service,
+or both, can run a tagged release instead, and they can be on different versions:
+
+```bash
+make up                                                     # both on the working copy
+make up AUTH_SHARED=shared/v0.2.0                           # auth on the tag, the app on the working copy
+make up APP_SHARED=shared/v0.3.0 AUTH_SHARED=shared/v0.2.0  # each on its own tag
+make up SHARED=shared/v0.2.0                                # both on one tag
+make shared-version                                         # what each running service imports
+```
+
+How it works:
+- `scripts/export-shared.sh` extracts the tag's `libs/shared` into `.build/<tag>/`. It needs no network or
+  credentials: just the tag in your clone (`git fetch --tags`).
+- The service's image is built from that copy.
+- `make up` with no variables goes back to the working copy.
+- Mixed versions work as far as the token contract allows; that is what its version claim is for (D8d in
+  [DECISIONS.md](DECISIONS.md)).
+- The image installs third-party packages from this checkout's `uv.lock`. The export warns if the tag declares
+  different dependencies.
 
 ## Housekeeping
 

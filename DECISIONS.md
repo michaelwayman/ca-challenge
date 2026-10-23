@@ -85,6 +85,17 @@ All eight are decided below. Observations from the seed data are recorded with t
 - **D8a, introspection (interpretation, to confirm):** the introspection *client* stays in the main app and the lib's permission class takes an injectable hook, so the lib stays small. The *authority* over trust stays in auth: what is valid, who holds which role, revocation, and which token versions are live. The request/response schema is part of `claims`. Auth's HTTP API is versioned by path (`/api/auth/v1/...`), and a new version runs alongside the old one until its clients move. Local JWT verification cannot live in the auth service (D7: no per-request call), which is why the lib exists.
 - **D8b, `ids` (decided): one definition in the lib** (`user_id_from_wp_id()` plus the UUIDv5 namespace). It is not scheduled for deletion; its docstring says it exists for the WP migration and that a future maintainer may delete it once nothing depends on it. Cost: migration-origin code in a long-lived package.
 - **D8c, distribution (decided): workspace for dev, SemVer ranges + git tags.** The lib stays a uv workspace member (editable, so compose bind-mounts give live edits). Each service declares a compatible range (`ca-authlib>=0.1,<0.2`; now `shared[...]>=0.2,<0.3`); releases are git tags (`ca-authlib/vX.Y.Z`) with a built wheel, so a service can lag a release. In this repo only the workspace is wired; the README documents the release flow and does not claim a publishing pipeline exists.
+  - *Later (decided, mine):*
+    - **Releases:** `make release-shared` (`scripts/release_shared.py`) bumps, relocks, tests, commits, tags
+      `shared/vX.Y.Z` and pushes.
+    - **Running a release:** each service can run a tagged release in Docker independently of the other
+      (`make up APP_SHARED=<tag> AUTH_SHARED=<tag>`). The tag is exported from git into `.build/`, and the
+      working copy stays the default for co-development.
+    - **Bind mount:** only the working copy is bind-mounted. A pinned tag is built into the image, so deleting or
+      re-exporting `.build/` can't pull a running container's library out from under it. That was the bug found
+      while testing.
+    - **Test dependency:** the library's `test` group gained `pytest-django`, which its tests always needed. The
+      repo's root environment had been providing it; a fresh clone showed the gap.
 - **D8d, breaking token changes (decided): versioned tokens, a `v` claim.** Tokens carry `v` (v1 from the start; a token with no `v` or an unknown `v` is rejected with 401). The lib's `claims` module holds an encoder and a decoder per version. Auth keeps a per-audience setting for which version to issue, so it supports several versions at once and each consumer moves on its own schedule; the verifier takes an `ACCEPTED_TOKEN_VERSIONS` setting. Rollout: (1) release lib N+1 with v1 and v2 parsers; (2) deploy the main app with both accepted; (3) flip the audience's issued version to v2 in auth (rollback is flipping it back); (4) later remove v1. Because access tokens live about 10 minutes and refresh issues new tokens at the current version, a retired version drains within one TTL. Cost: two live parsers during a rollout and a written retirement rule (drop a version when no audience issues it and one TTL has passed).
 
 ## Implementation notes: auth service, shared library and the protected endpoint
